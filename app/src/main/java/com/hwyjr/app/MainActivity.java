@@ -54,6 +54,11 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
                 handler.sendEmptyMessage(1); //给UI主线程发送消息
             }
         }, 3000); //启动等待3秒钟
+        this.initWebview();
+    }
+
+
+    public void initWebview() {
         webview.loadUrl(Const.WEB_PORTAL);
         webview.getSettings().setJavaScriptEnabled(true);
         webview.getSettings().setDomStorageEnabled(true);
@@ -69,6 +74,8 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
                 return true;
             }
         });
+
+
     }
 
     @Override
