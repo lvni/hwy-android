@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ViewFlipper xmlns:android="http://schemas.android.com/apk/res/android"
+android:id="@+id/allFlipper"
+android:layout_width="fill_parent"
+android:layout_height="fill_parent" >
+<!-- 启动等待界面 -->
+<RelativeLayout
+    android:id="@+id/splashLayout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@drawable/app_start" >
+</RelativeLayout>
+<!-- 主界面 -->
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="0dp"
+        android:paddingLeft="0dp"
+        android:paddingRight="0dp"
+        android:paddingTop="0dp"
+        android:theme="@android:style/Theme.NoTitleBar"
+        tools:context="com.hwyjr.app.MainActivity">
+
+        <WebView
+            android:id="@+id/container"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+
+        </WebView>
+
+    </RelativeLayout>
+
+</ViewFlipper>
