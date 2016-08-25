@@ -25,7 +25,8 @@ android:layout_height="fill_parent" >
         <WebView
             android:id="@+id/container"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
+            android:layout_height="fill_parent"
+            android:scrollbars="none">
 
         </WebView>
 
