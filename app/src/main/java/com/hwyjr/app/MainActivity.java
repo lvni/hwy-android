@@ -11,15 +11,15 @@ import android.os.Message;
 import android.widget.ViewFlipper;
 import com.hwyjr.app.include.Const;
 
-import com.tencent.mm.sdk.openapi.BaseReq;
-import com.tencent.mm.sdk.openapi.BaseResp;
-import com.tencent.mm.sdk.openapi.ConstantsAPI;
-import com.tencent.mm.sdk.openapi.ShowMessageFromWX;
+import com.tencent.mm.sdk.modelbase.BaseReq;
+import com.tencent.mm.sdk.modelbase.BaseResp;
+import com.tencent.mm.sdk.constants .ConstantsAPI;
+import com.tencent.mm.sdk.modelmsg.ShowMessageFromWX;
 import com.tencent.mm.sdk.openapi.IWXAPI;
 import com.tencent.mm.sdk.openapi.IWXAPIEventHandler;
 import com.tencent.mm.sdk.openapi.WXAPIFactory;
-import com.tencent.mm.sdk.openapi.WXAppExtendObject;
-import com.tencent.mm.sdk.openapi.WXMediaMessage;
+import com.tencent.mm.sdk.modelmsg.WXAppExtendObject;
+import com.tencent.mm.sdk.modelmsg.WXMediaMessage;
 
 import android.content.Intent;
 import android.view.View;
@@ -86,10 +86,10 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
     public void onReq(BaseReq req) {
         switch (req.getType()) {
             case ConstantsAPI.COMMAND_GETMESSAGE_FROM_WX:
-                goToGetMsg();
+
                 break;
             case ConstantsAPI.COMMAND_SHOWMESSAGE_FROM_WX:
-                goToShowMsg((ShowMessageFromWX.Req) req);
+
                 break;
             default:
                 break;
@@ -103,16 +103,16 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
 
         switch (resp.errCode) {
             case BaseResp.ErrCode.ERR_OK:
-                result = R.string.errcode_success;
+
                 break;
             case BaseResp.ErrCode.ERR_USER_CANCEL:
-                result = R.string.errcode_cancel;
+
                 break;
             case BaseResp.ErrCode.ERR_AUTH_DENIED:
-                result = R.string.errcode_deny;
+
                 break;
             default:
-                result = R.string.errcode_unknown;
+
                 break;
         }
 
