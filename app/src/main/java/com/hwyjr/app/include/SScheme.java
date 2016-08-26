@@ -5,19 +5,9 @@ import android.content.Context;
 import android.net.Uri;
 import android.widget.Toast;
 
-import com.hwyjr.app.MainActivity;
 import com.tencent.mm.sdk.modelmsg.SendAuth;
 import com.tencent.mm.sdk.openapi.IWXAPI;
-import com.tencent.mm.sdk.modelbase.BaseReq;
-import com.tencent.mm.sdk.modelbase.BaseResp;
-import com.tencent.mm.sdk.constants.ConstantsAPI;
-import com.tencent.mm.sdk.modelmsg.ShowMessageFromWX;
-import com.tencent.mm.sdk.openapi.IWXAPI;
-import com.tencent.mm.sdk.openapi.IWXAPIEventHandler;
 import com.tencent.mm.sdk.openapi.WXAPIFactory;
-import com.tencent.mm.sdk.modelmsg.SendAuth.Req;
-import com.tencent.mm.sdk.modelmsg.WXAppExtendObject;
-import com.tencent.mm.sdk.modelmsg.WXMediaMessage;
 
 /**
  * Created by zyl on 2016/8/26.

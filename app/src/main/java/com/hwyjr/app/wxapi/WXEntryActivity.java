@@ -1,21 +1,17 @@
-package com.hwyjr.app;
+package com.hwyjr.app.wxapi;
 
+import com.hwyjr.app.R;
 import com.hwyjr.app.include.Utils;
 
-import android.app.Activity;
 import android.graphics.Bitmap;
-import android.media.Image;
 import android.net.Uri;
-import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.LinearLayout;
@@ -26,26 +22,25 @@ import com.tencent.mm.sdk.modelbase.BaseReq;
 import com.tencent.mm.sdk.modelbase.BaseResp;
 import com.tencent.mm.sdk.constants .ConstantsAPI;
 import com.tencent.mm.sdk.modelmsg.SendAuth;
-import com.tencent.mm.sdk.modelmsg.ShowMessageFromWX;
 import com.tencent.mm.sdk.openapi.IWXAPI;
 import com.tencent.mm.sdk.openapi.IWXAPIEventHandler;
 import com.tencent.mm.sdk.openapi.WXAPIFactory;
-import com.tencent.mm.sdk.modelmsg.WXAppExtendObject;
-import com.tencent.mm.sdk.modelmsg.WXMediaMessage;
 
 import android.content.Intent;
-import android.content.Context;
 import android.view.View;
 import android.widget.Toast;
 
-import com.hwyjr.app.include.SScheme;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-public class MainActivity extends AppCompatActivity implements IWXAPIEventHandler {
+public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHandler {
 
     protected WebView webview;
     protected LinearLayout NaviBar;
     private ViewFlipper allFlipper;
     private IWXAPI api;
+    private String jsCallbacFunc ;
     private Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -60,7 +55,12 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
     };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        jsCallbacFunc = "";
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            jsCallbacFunc = savedInstanceState.getString("jsCallbacFunc");
+            System.out.println("onCreate: temp = " + jsCallbacFunc);
+        }
         setContentView(R.layout.activity_main);
         webview = (WebView) findViewById(R.id.container);
         allFlipper = (ViewFlipper) findViewById(R.id.allFlipper);
@@ -79,6 +79,19 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
     }
 
 
+    public void onResume() {
+        super.onResume();
+        //jsCallbacFunc = (String)this.getIntent().getExtras().get("jsCallbacFunc");
+
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("jsCallbacFunc", jsCallbacFunc);
+    }
+
+
     public void initWebview() {
         webview.loadUrl(Const.WEB_PORTAL);
         webview.getSettings().setJavaScriptEnabled(true);
@@ -89,10 +102,9 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
         //设置ua
         String DefaultUa = webview.getSettings().getUserAgentString();
         String NewUa = DefaultUa + " hwy/" + Utils.getVersionName(this) ;
-        System.out.println("new ua is " + NewUa);
         webview.getSettings().setUserAgentString(NewUa);
         NaviBar = (LinearLayout)findViewById(R.id.navi_bar);
-        final MainActivity self = this;
+        final WXEntryActivity self = this;
         //覆盖WebView默认使用第三方或系统默认浏览器打开网页的行为，使网页用WebView打开
         webview.setWebViewClient(new WebViewClient(){
             @Override
@@ -178,6 +190,8 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
     // 微信发送请求到第三方应用时，会回调到该方法
     @Override
     public void onReq(BaseReq req) {
+
+        System.out.println("wx back " + req.getType());
         switch (req.getType()) {
             case ConstantsAPI.COMMAND_GETMESSAGE_FROM_WX:
 
@@ -193,24 +207,26 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
     // 第三方应用发送到微信的请求处理后的响应结果，会回调到该方法
     @Override
     public void onResp(BaseResp resp) {
-        int result = 0;
-
-        switch (resp.errCode) {
-            case BaseResp.ErrCode.ERR_OK:
-
-                break;
-            case BaseResp.ErrCode.ERR_USER_CANCEL:
-
-                break;
-            case BaseResp.ErrCode.ERR_AUTH_DENIED:
-
-                break;
-            default:
-
-                break;
+        int result = resp.errCode;
+        String op ="";
+        String CallbackParams = "";
+        if (resp.getType() == ConstantsAPI.COMMAND_SENDAUTH) {
+            String code = "";
+            SendAuth.Resp authResp = (SendAuth.Resp) resp;
+            code = authResp.code;
+            CallbackParams = "{errCode:"+result+",code:'"+code+"'}";
         }
+        this.webviewCallback(CallbackParams);
+    }
 
-        Toast.makeText(this, result, Toast.LENGTH_LONG).show();
+    /**
+     * 回调h5的js代码
+     * @param params
+     */
+    public void webviewCallback(String params) {
+        if (jsCallbacFunc != null && jsCallbacFunc != "" ) {
+            webview.loadUrl("javascript:"+jsCallbacFunc+"('" +params+"')");
+        }
     }
 
     @Override
@@ -225,7 +241,18 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
         try {
             Uri uri = Uri.parse(url);
             String host = uri.getHost();
-            String query = uri.getQuery();
+            jsCallbacFunc = uri.getQueryParameter("callback");
+            String params = uri.getQueryParameter("params");
+            //解析json格式的参数
+            JSONObject jsonParams = null;
+            try {
+                if (params != null) {
+                    jsonParams = new JSONObject(params);
+                }
+
+            } catch (JSONException e) {
+                System.out.println("json jiexi shibai");
+            }
 
             switch (host) {
                 case "login":
@@ -263,9 +290,6 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
         }
     }
 
-    protected void onActivityResult(int requestCode, int resultCode, Intent data){
-
-    }
 
 
 }
