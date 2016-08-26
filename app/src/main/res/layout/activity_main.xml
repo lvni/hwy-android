@@ -11,25 +11,27 @@ android:layout_height="fill_parent" >
     android:background="@drawable/app_start" >
 </RelativeLayout>
 <!-- 主界面 -->
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="0dp"
-        android:paddingLeft="0dp"
-        android:paddingRight="0dp"
-        android:paddingTop="0dp"
         android:theme="@android:style/Theme.NoTitleBar"
-        tools:context="com.hwyjr.app.MainActivity">
-
+        tools:context="com.hwyjr.app.MainActivity"
+        android:orientation="vertical"
+        >
+        <include
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_centerHorizontal="true"
+            layout="@layout/navi_bar" />
         <WebView
             android:id="@+id/container"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="match_parent"
             android:scrollbars="none">
 
         </WebView>
 
-    </RelativeLayout>
+    </LinearLayout>
 
 </ViewFlipper>

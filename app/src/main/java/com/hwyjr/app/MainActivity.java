@@ -1,5 +1,8 @@
 package com.hwyjr.app;
 
+import com.hwyjr.app.include.Utils;
+
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -8,6 +11,8 @@ import android.webkit.WebViewClient;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ViewFlipper;
 import com.hwyjr.app.include.Const;
 
@@ -22,13 +27,17 @@ import com.tencent.mm.sdk.modelmsg.WXAppExtendObject;
 import com.tencent.mm.sdk.modelmsg.WXMediaMessage;
 
 import android.content.Intent;
+import android.content.Context;
 import android.view.View;
 import android.widget.Toast;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class MainActivity extends AppCompatActivity implements IWXAPIEventHandler {
 
     protected WebView webview;
-
+    protected LinearLayout NaviBar;
     private ViewFlipper allFlipper;
     private Handler handler = new Handler(){
         @Override
@@ -64,13 +73,36 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
         webview.getSettings().setDomStorageEnabled(true);
         webview.getSettings().setAllowFileAccess(true);
         webview.getSettings().setAppCacheEnabled(true);
+        //WebView.setWebContentsDebuggingEnabled(true);
+        //设置ua
+        String DefaultUa = webview.getSettings().getUserAgentString();
+        String NewUa = DefaultUa + " hwy/" + Utils.getVersionName(this) ;
+        System.out.println("new ua is " + NewUa);
+        webview.getSettings().setUserAgentString(NewUa);
+        NaviBar = (LinearLayout)findViewById(R.id.navi_bar);
         //覆盖WebView默认使用第三方或系统默认浏览器打开网页的行为，使网页用WebView打开
         webview.setWebViewClient(new WebViewClient(){
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 // TODO Auto-generated method stub
                 //返回值是true的时候控制去WebView打开，为false调用系统浏览器或第三方浏览器
-                view.loadUrl(url);
+                if (url != null && (url.startsWith("http://") || url.startsWith("https://") )) {
+
+                    //如果url host 不是官网，则需要添加返回按钮
+                    view.loadUrl(url);
+                    if (url.contains(Const.WEB_HOST)) {
+                        //非官网
+                        NaviBar.setVisibility(View.GONE);
+                    } else {
+                        NaviBar.setVisibility(View.VISIBLE);
+                    }
+                }
+
+                if (url != null && url.startsWith("hwy://")) {
+                    //自定义协议
+
+                }
+
                 return true;
             }
         });
@@ -124,5 +156,37 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
         }
 
         Toast.makeText(this, result, Toast.LENGTH_LONG).show();
+    }
+
+
+
+
+    //处理自定义协议
+
+    public void handelScheme(String url) {
+        if (url == null) {
+            return ;
+        }
+        try {
+            URL  urlObj = new URL(url);
+            String host = urlObj.getHost();
+            String Query = urlObj.getQuery();
+
+            switch (host) {
+                case "login":
+                    break;
+                case "scan":
+                    break;
+                case "share":
+                    break;
+                default:
+                    return;
+            }
+
+
+        } catch (MalformedURLException e) {
+            return ;
+        }
+
     }
 }
