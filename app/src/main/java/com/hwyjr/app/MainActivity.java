@@ -2,7 +2,11 @@ package com.hwyjr.app;
 
 import com.hwyjr.app.include.Utils;
 
+import android.app.Activity;
+import android.graphics.Bitmap;
+import android.media.Image;
 import android.net.Uri;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -11,7 +15,9 @@ import android.webkit.WebViewClient;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.LinearLayout;
 import android.widget.ViewFlipper;
 import com.hwyjr.app.include.Const;
@@ -19,6 +25,7 @@ import com.hwyjr.app.include.Const;
 import com.tencent.mm.sdk.modelbase.BaseReq;
 import com.tencent.mm.sdk.modelbase.BaseResp;
 import com.tencent.mm.sdk.constants .ConstantsAPI;
+import com.tencent.mm.sdk.modelmsg.SendAuth;
 import com.tencent.mm.sdk.modelmsg.ShowMessageFromWX;
 import com.tencent.mm.sdk.openapi.IWXAPI;
 import com.tencent.mm.sdk.openapi.IWXAPIEventHandler;
@@ -31,14 +38,14 @@ import android.content.Context;
 import android.view.View;
 import android.widget.Toast;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import com.hwyjr.app.include.SScheme;
 
 public class MainActivity extends AppCompatActivity implements IWXAPIEventHandler {
 
     protected WebView webview;
     protected LinearLayout NaviBar;
     private ViewFlipper allFlipper;
+    private IWXAPI api;
     private Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -64,6 +71,11 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
             }
         }, 3000); //启动等待3秒钟
         this.initWebview();
+        this.initNaviBarEvent();
+        api = WXAPIFactory.createWXAPI(this, Const.APP_ID, false);
+        api.registerApp(Const.APP_ID);
+        api.handleIntent(getIntent(), this);
+        //handleIntent(getIntent());
     }
 
 
@@ -80,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
         System.out.println("new ua is " + NewUa);
         webview.getSettings().setUserAgentString(NewUa);
         NaviBar = (LinearLayout)findViewById(R.id.navi_bar);
+        final MainActivity self = this;
         //覆盖WebView默认使用第三方或系统默认浏览器打开网页的行为，使网页用WebView打开
         webview.setWebViewClient(new WebViewClient(){
             @Override
@@ -91,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
                     //如果url host 不是官网，则需要添加返回按钮
                     view.loadUrl(url);
                     if (url.contains(Const.WEB_HOST)) {
-                        //非官网
+                        //官网
                         NaviBar.setVisibility(View.GONE);
                     } else {
                         NaviBar.setVisibility(View.VISIBLE);
@@ -99,15 +112,57 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
                 }
 
                 if (url != null && url.startsWith("hwy://")) {
+                    System.out.println(url);
                     //自定义协议
 
+                    (self).parseUrl(url);
                 }
 
                 return true;
             }
+
+            public void onPageStarted(WebView view, String url, Bitmap favicon)
+            {
+
+                if (url.contains(Const.WEB_HOST)) {
+                    //官网
+                    NaviBar.setVisibility(View.GONE);
+                } else {
+                    NaviBar.setVisibility(View.VISIBLE);
+                }
+                //结束
+                super.onPageStarted(view, url, favicon);
+
+            }
         });
 
 
+    }
+
+    public void WebViewBack() {
+        if (webview.canGoBack()) {
+            webview.goBack();
+        }
+    }
+    public void initNaviBarEvent() {
+        //初始化naviBar事件
+        ImageButton ibnt = (ImageButton)findViewById(R.id.wb_back);
+        ibnt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (webview.canGoBack()) {
+                    webview.goBack();
+                }
+            }
+        });
+
+        TextView home = (TextView)findViewById(R.id.wb_home);
+        home.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                webview.loadUrl(Const.WEB_PORTAL);
+            }
+        });
     }
 
     @Override
@@ -158,35 +213,59 @@ public class MainActivity extends AppCompatActivity implements IWXAPIEventHandle
         Toast.makeText(this, result, Toast.LENGTH_LONG).show();
     }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
 
+        setIntent(intent);
+        api.handleIntent(intent, this);
+    }
 
-
-    //处理自定义协议
-
-    public void handelScheme(String url) {
-        if (url == null) {
-            return ;
-        }
+    public void parseUrl(String url) {
         try {
-            URL  urlObj = new URL(url);
-            String host = urlObj.getHost();
-            String Query = urlObj.getQuery();
+            Uri uri = Uri.parse(url);
+            String host = uri.getHost();
+            String query = uri.getQuery();
 
             switch (host) {
                 case "login":
+                    String act = uri.getQueryParameter("act");
+                    if (act.equals("weixin")) {
+
+                        if (!api.isWXAppInstalled()) {
+                            //提醒用户没有按照微信
+                            Toast.makeText(this, "请先安装微信!", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        //微信登陆
+                        final SendAuth.Req req = new SendAuth.Req();
+                        req.scope = "snsapi_userinfo";
+                        req.state = "wechat_sdk_hwy";
+                        api.sendReq(req);
+                        //finish();
+                    }
+                    System.out.println("登录");
                     break;
                 case "scan":
+                    System.out.println("扫码");
                     break;
                 case "share":
+                    System.out.println("分享");
                     break;
                 default:
                     return;
             }
 
 
-        } catch (MalformedURLException e) {
+        } catch (Exception e) {
+            e.printStackTrace();
             return ;
         }
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
 
     }
+
+
 }

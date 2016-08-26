@@ -1,12 +1,19 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        hwy {
+            keyAlias 'hyh'
+            keyPassword '782396869'
+            storeFile file('D:/洪五爷/源代码/洪五爷珠宝/洪五爷珠宝/hwy.kjs')
+            storePassword '782396869'
+        }
+    }
     compileSdkVersion 23
     buildToolsVersion "24.0.1"
-
     defaultConfig {
         applicationId "com.hwyjr.app"
-        minSdkVersion 19
+        minSdkVersion 15
         targetSdkVersion 23
         versionCode 47
         versionName "1.1.0"
@@ -15,6 +22,10 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.hwy
+        }
+        debug {
+            signingConfig signingConfigs.hwy
         }
     }
 }

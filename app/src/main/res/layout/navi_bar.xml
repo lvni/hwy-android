@@ -22,5 +22,6 @@
         android:gravity="center_vertical"
         android:textSize="20dp"
         android:text="@string/wb_home"
+        android:id="@+id/wb_home"
         android:textColor="@color/colorHome"/>
 </LinearLayout>
