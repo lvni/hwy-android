@@ -3,6 +3,8 @@ package com.hwyjr.app.wxapi;
 import com.hwyjr.app.R;
 import com.hwyjr.app.include.Utils;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +24,7 @@ import com.tencent.mm.sdk.modelbase.BaseReq;
 import com.tencent.mm.sdk.modelbase.BaseResp;
 import com.tencent.mm.sdk.constants .ConstantsAPI;
 import com.tencent.mm.sdk.modelmsg.SendAuth;
+import com.tencent.mm.sdk.modelpay.PayReq;
 import com.tencent.mm.sdk.openapi.IWXAPI;
 import com.tencent.mm.sdk.openapi.IWXAPIEventHandler;
 import com.tencent.mm.sdk.openapi.WXAPIFactory;
@@ -34,6 +37,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Set;
+
 public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHandler {
 
     protected WebView webview;
@@ -42,6 +47,8 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
     private IWXAPI api;
     private String jsCallbacFunc = "" ;
     private String jsBackParams = "";
+    private int inited = 0;
+    private int resumed = 0;
     private Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -57,24 +64,46 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        int payRet = -9999;
         if (savedInstanceState != null) {
             jsCallbacFunc = savedInstanceState.getString("jsCallbacFunc");
             System.out.println("onCreate: temp = " + jsCallbacFunc);
         }
+
+        Bundle ct  = getIntent().getExtras();
+
+        payRet = getIntent().getIntExtra("pay_ret", -9999);
+
         setContentView(R.layout.activity_main);
+
         webview = (WebView) findViewById(R.id.container);
         allFlipper = (ViewFlipper) findViewById(R.id.allFlipper);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                handler.sendEmptyMessage(1); //给UI主线程发送消息
-            }
-        }, 3000); //启动等待3秒钟
+        if (ct != null) {
+            //第二次进入，不需要显示启动页
+            handler.sendEmptyMessage(1);
+        } else {
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    handler.sendEmptyMessage(1); //给UI主线程发送消息
+                }
+            }, 3000); //启动等待3秒钟
+        }
+
         this.initWebview();
         this.initNaviBarEvent();
         api = WXAPIFactory.createWXAPI(this, Const.APP_ID, false);
         api.registerApp(Const.APP_ID);
         api.handleIntent(getIntent(), this);
+
+        if (payRet > -9999) {
+            //支付回调
+            handelWxPayBack(payRet);
+
+        } else {
+            webview.loadUrl(Const.WEB_PORTAL);
+        }
+
         //handleIntent(getIntent());
     }
 
@@ -101,7 +130,8 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
     }
 
     public void initWebview() {
-        webview.loadUrl(Const.WEB_PORTAL);
+        this.inited = 1;
+
         webview.getSettings().setJavaScriptEnabled(true);
         webview.getSettings().setDomStorageEnabled(true);
         webview.getSettings().setAllowFileAccess(true);
@@ -120,7 +150,6 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 // TODO Auto-generated method stub
 
-                System.out.println("加载资源 " + url);
                 //返回值是true的时候控制去WebView打开，为false调用系统浏览器或第三方浏览器
                 if (url != null && (url.startsWith("http://") || url.startsWith("https://") )) {
 
@@ -244,6 +273,7 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
     public void onResp(BaseResp resp) {
         int result = resp.errCode;
         String CallbackParams = "";
+        System.out.println("wx back " + resp.errCode);
         if (resp.getType() == ConstantsAPI.COMMAND_SENDAUTH) {
             String code = "";
             SendAuth.Resp authResp = (SendAuth.Resp) resp;
@@ -261,7 +291,8 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
      */
     public void webviewCallback() {
         if (jsCallbacFunc != null && jsCallbacFunc != ""  && jsBackParams != "") {
-
+            //因为js函数放在外部js文件中，是一个异步加载过程，函未数可能加载，
+            //所以使用定时器，每秒钟检查函数一次，如果函数存在则调用，并关闭定时器
             String funcContent = jsCallbacFunc+"(" +jsBackParams+")";
             String JsContent = "var cid = setInterval(function(){" +
                     "if (typeof "+jsCallbacFunc+" == 'function') {" +
@@ -271,7 +302,6 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
             webview.loadUrl("javascript:"+JsContent);
             jsCallbacFunc = jsBackParams = "";
         }
-       // webview.loadUrl("javascript:messageBox.toast('测试回调')");
     }
 
     @Override
@@ -324,6 +354,34 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
                 case "share":
                     System.out.println("分享");
                     break;
+                case "pay":
+                    System.out.println("支付");
+                    act = uri.getQueryParameter("act");
+                    if (act.equals("weixin")) {
+
+                        if (!api.isWXAppInstalled()) {
+                            //提醒用户没有按照微信
+                            Toast.makeText(this, "请先安装微信!", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        try {
+
+                            this.saveData("order", jsonParams.getString("order_sn"));
+                            PayReq request = new PayReq();
+                            request.appId = jsonParams.getString("appid");
+                            request.partnerId = jsonParams.getString("partnerid");
+                            request.prepayId = jsonParams.getString("prepayid");
+                            request.packageValue = jsonParams.getString("package");
+                            request.nonceStr = jsonParams.getString("noncestr");
+                            request.timeStamp = jsonParams.getString("timestamp");
+                            request.sign = jsonParams.getString("sign");
+                            api.sendReq(request);
+                        } catch(Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    break;
                 default:
                     return;
             }
@@ -335,6 +393,32 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
         }
     }
 
+    public void handelWxPayBack(int code) {
+        jsCallbacFunc = "AppCall.wxPayBack";
+        String Order = getData("order", "");
+        jsBackParams = "{errCode:"+code+",order:'"+Order+"'}";
+        removeData("order");
+        webview.loadUrl(Const.ORDER_PORTAL + Order);
+    }
+
+    public void saveData(String key, String value) {
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(key,value);
+        editor.commit();
+    }
+
+    public void removeData(String key) {
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.remove(key);
+        editor.commit();
+    }
+
+    public String getData(String key, String Default) {
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        return  sharedPref.getString(key, Default);
+    }
 
 
 }
