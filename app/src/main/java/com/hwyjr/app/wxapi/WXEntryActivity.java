@@ -40,7 +40,8 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
     protected LinearLayout NaviBar;
     private ViewFlipper allFlipper;
     private IWXAPI api;
-    private String jsCallbacFunc ;
+    private String jsCallbacFunc = "" ;
+    private String jsBackParams = "";
     private Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -55,7 +56,6 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
     };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        jsCallbacFunc = "";
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
             jsCallbacFunc = savedInstanceState.getString("jsCallbacFunc");
@@ -91,6 +91,14 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
         outState.putString("jsCallbacFunc", jsCallbacFunc);
     }
 
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState != null) {
+            jsCallbacFunc = savedInstanceState.getString("jsCallbacFunc");
+            System.out.println("onCreate: temp = " + jsCallbacFunc);
+        }
+    }
 
     public void initWebview() {
         webview.loadUrl(Const.WEB_PORTAL);
@@ -98,18 +106,21 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
         webview.getSettings().setDomStorageEnabled(true);
         webview.getSettings().setAllowFileAccess(true);
         webview.getSettings().setAppCacheEnabled(true);
-        //WebView.setWebContentsDebuggingEnabled(true);
+        WebView.setWebContentsDebuggingEnabled(true);
         //设置ua
         String DefaultUa = webview.getSettings().getUserAgentString();
         String NewUa = DefaultUa + " hwy/" + Utils.getVersionName(this) ;
         webview.getSettings().setUserAgentString(NewUa);
         NaviBar = (LinearLayout)findViewById(R.id.navi_bar);
         final WXEntryActivity self = this;
+
         //覆盖WebView默认使用第三方或系统默认浏览器打开网页的行为，使网页用WebView打开
         webview.setWebViewClient(new WebViewClient(){
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 // TODO Auto-generated method stub
+
+                System.out.println("加载资源 " + url);
                 //返回值是true的时候控制去WebView打开，为false调用系统浏览器或第三方浏览器
                 if (url != null && (url.startsWith("http://") || url.startsWith("https://") )) {
 
@@ -146,6 +157,30 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
                 super.onPageStarted(view, url, favicon);
 
             }
+
+            @Override
+            public void onPageFinished(WebView view, String url)
+            {
+
+                //开始
+                super.onPageFinished(view, url);
+                //回调js
+                //只有main.js 加载完成才回调
+                self.webviewCallback();
+
+
+            }
+
+            @Override
+            public void onReceivedError(WebView view, int errorCode,
+                                        String description, String failingUrl)  {
+                super.onReceivedError( view, errorCode,
+                description, failingUrl);
+            }
+
+
+
+
         });
 
 
@@ -208,25 +243,35 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
     @Override
     public void onResp(BaseResp resp) {
         int result = resp.errCode;
-        String op ="";
         String CallbackParams = "";
         if (resp.getType() == ConstantsAPI.COMMAND_SENDAUTH) {
             String code = "";
             SendAuth.Resp authResp = (SendAuth.Resp) resp;
             code = authResp.code;
-            CallbackParams = "{errCode:"+result+",code:'"+code+"'}";
+            CallbackParams = "{errCode:"+result+",code:\""+code+"\"}";
         }
-        this.webviewCallback(CallbackParams);
+        jsCallbacFunc = "AppCall.wxCallback";
+        jsBackParams = CallbackParams;
+        //this.webviewCallback(CallbackParams);
     }
 
     /**
      * 回调h5的js代码
-     * @param params
+     * @param
      */
-    public void webviewCallback(String params) {
-        if (jsCallbacFunc != null && jsCallbacFunc != "" ) {
-            webview.loadUrl("javascript:"+jsCallbacFunc+"('" +params+"')");
+    public void webviewCallback() {
+        if (jsCallbacFunc != null && jsCallbacFunc != ""  && jsBackParams != "") {
+
+            String funcContent = jsCallbacFunc+"(" +jsBackParams+")";
+            String JsContent = "var cid = setInterval(function(){" +
+                    "if (typeof "+jsCallbacFunc+" == 'function') {" +
+                    funcContent + ";clearInterval(cid) }}, 1000)";
+
+           //webview.loadUrl("javascript:"+jsCallbacFunc+" && "+jsCallbacFunc+"(" +jsBackParams+")");
+            webview.loadUrl("javascript:"+JsContent);
+            jsCallbacFunc = jsBackParams = "";
         }
+       // webview.loadUrl("javascript:messageBox.toast('测试回调')");
     }
 
     @Override
