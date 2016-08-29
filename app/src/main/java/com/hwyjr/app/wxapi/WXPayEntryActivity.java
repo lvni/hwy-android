@@ -3,6 +3,7 @@ package com.hwyjr.app.wxapi;
 import android.app.Activity;
 import android.support.v7.app.AppCompatActivity;
 
+import com.hwyjr.app.MainActivity;
 import com.hwyjr.app.include.Const;
 import com.tencent.mm.sdk.modelbase.BaseReq;
 import com.tencent.mm.sdk.modelbase.BaseResp;
@@ -49,9 +50,13 @@ public class WXPayEntryActivity extends Activity implements IWXAPIEventHandler {
     public void onResp(BaseResp resp) {
 
         if (resp.getType() == ConstantsAPI.COMMAND_PAY_BY_WX) {
-            Intent intent = new Intent(this, WXEntryActivity.class);
-            intent.putExtra("pay_ret", resp.errCode);
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("wx_type", "pay");
+            String CallbackParams = "{errCode:"+resp.errCode+"}";
+            intent.putExtra("wx_back", CallbackParams);
+            //startActivity(intent);
             startActivity(intent);
+            //startActivityForResult(intent, 1);
         }
     }
 }
