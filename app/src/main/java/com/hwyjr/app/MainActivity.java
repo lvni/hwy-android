@@ -14,6 +14,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.os.Handler;
 import android.os.Message;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.LinearLayout;
@@ -58,6 +59,10 @@ public class MainActivity extends AppCompatActivity  {
                     //切换到主页面
                     allFlipper.setDisplayedChild(1);
                     break;
+                case 2:
+                    //关闭分享
+                    findViewById(R.id.share_box).setVisibility(View.GONE);
+                    break;
             }
         }
     };
@@ -74,6 +79,7 @@ public class MainActivity extends AppCompatActivity  {
             allFlipper = (ViewFlipper) findViewById(R.id.allFlipper);
             this.initWebview();
             this.initNaviBarEvent();
+            this.initShareEvent();
             webview.loadUrl(Const.WEB_PORTAL);
             api = WXAPIFactory.createWXAPI(this, Const.APP_ID, false);
             api.registerApp(Const.APP_ID);
@@ -105,7 +111,6 @@ public class MainActivity extends AppCompatActivity  {
         Bundle by = this.getIntent().getExtras();
         System.out.println("恢复了 " );
         Intent ct = getIntent();
-        System.out.println(ct.getStringExtra("wx_back"));
         if ("login".equals(ct.getStringExtra("wx_type"))) {
             System.out.println("微信登陆回调 " + ct.getStringExtra("wx_back") );
             handelWxLoginBack(ct.getStringExtra("wx_back"));
@@ -114,6 +119,7 @@ public class MainActivity extends AppCompatActivity  {
         if ("pay".equals(ct.getStringExtra("wx_type"))) {
             handelWxPayBack(ct.getStringExtra("wx_back"));
         }
+        ct.removeExtra("wx_type");
     }
 
     @Override
@@ -133,7 +139,7 @@ public class MainActivity extends AppCompatActivity  {
         webview.getSettings().setDomStorageEnabled(true);
         webview.getSettings().setAllowFileAccess(true);
         webview.getSettings().setAppCacheEnabled(true);
-        WebView.setWebContentsDebuggingEnabled(true);
+       // WebView.setWebContentsDebuggingEnabled(true);
         //设置ua
         String DefaultUa = webview.getSettings().getUserAgentString();
         String NewUa = DefaultUa + " hwy/" + Utils.getVersionName(this) ;
@@ -146,7 +152,12 @@ public class MainActivity extends AppCompatActivity  {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 // TODO Auto-generated method stub
+                if (url.startsWith("tel:") ){
+                    Intent intent = new Intent(Intent.ACTION_VIEW,
+                            Uri.parse(url));
+                    startActivity(intent);
 
+                }
                 //返回值是true的时候控制去WebView打开，为false调用系统浏览器或第三方浏览器
                 if (url != null && (url.startsWith("http://") || url.startsWith("https://") )) {
 
@@ -238,6 +249,34 @@ public class MainActivity extends AppCompatActivity  {
         });
     }
 
+    /**
+     *  初始化分享事件
+     */
+    public void initShareEvent() {
+        TextView cancel = (TextView)findViewById(R.id.share_cancel_bnt);
+        final FrameLayout share_nt = (FrameLayout)findViewById(R.id.share_box);
+        ImageButton wxShFriend = (ImageButton)findViewById(R.id.share_wx_friend);
+        ImageButton wxShTimeline = (ImageButton)findViewById(R.id.share_wx_timeline);
+
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            share_nt.setVisibility(View.GONE);
+        }});
+        wxShFriend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                System.out.println("分享到微信朋友");
+            }
+        });
+    }
+
+    public void hideShare() {
+        FrameLayout share_nt = (FrameLayout)findViewById(R.id.share_box);
+        share_nt.setVisibility(View.INVISIBLE);
+
+    }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if(keyCode == KeyEvent.KEYCODE_BACK && webview.canGoBack()){
@@ -255,13 +294,6 @@ public class MainActivity extends AppCompatActivity  {
      */
     public void webviewCallback() {
         if (jsCallbacFunc != null && jsCallbacFunc != ""  && jsBackParams != "") {
-            //因为js函数放在外部js文件中，是一个异步加载过程，函未数可能加载，
-            //所以使用定时器，每秒钟检查函数一次，如果函数存在则调用，并关闭定时器
-            String funcContent = jsCallbacFunc+"(" +jsBackParams+")";
-            String JsContent = "var cid = setInterval(function(){" +
-                    "if (typeof "+jsCallbacFunc+" == 'function') {" +
-                    funcContent + ";clearInterval(cid) }}, 1000)";
-            System.out.println("调用回调 " + "javascript:"+jsCallbacFunc+" && "+jsCallbacFunc+"(" +jsBackParams+")");
             webview.loadUrl("javascript:"+jsCallbacFunc+" && "+jsCallbacFunc+"(" +jsBackParams+")");
             //webview.loadUrl("javascript:"+JsContent);
             jsCallbacFunc = jsBackParams = "";
@@ -309,6 +341,13 @@ public class MainActivity extends AppCompatActivity  {
                     break;
                 case "share":
                     System.out.println("分享");
+                    findViewById(R.id.share_box).setVisibility(View.VISIBLE);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            handler.sendEmptyMessage(2); //给UI主线程发送消息
+                        }
+                    }, 10000); //10秒后关闭分享
                     break;
                 case "pay":
                     System.out.println("支付");
