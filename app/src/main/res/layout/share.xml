@@ -4,31 +4,29 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:background="@color/colorPrimary"
-    android:layout_height="110dp"
+    android:layout_height="120dp"
     android:gravity="center_vertical"
     android:layout_gravity="bottom"
     android:id="@+id/share_box"
     android:visibility="gone">
     
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+    <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:background="@color/colorPrimary"
         android:layout_height="70dp"
+        android:paddingTop="10dp"
         android:gravity="center_horizontal"
         android:id="@+id/share_bnts">
 
         <ImageButton android:layout_height="50dp"
             android:layout_width="50dp"
-            android:paddingTop="10dp"
             android:background="@drawable/icon64_appwx_logo"
             android:id="@+id/share_wx_friend"
             android:clickable="true"/>
 
         <ImageButton android:layout_height="50dp"
             android:layout_width="50dp"
-            android:paddingTop="10dp"
             android:layout_marginLeft="100dp"
             android:background="@drawable/icon_res_download_moments"
             android:id="@+id/share_wx_timeline"
@@ -37,7 +35,8 @@
     <TextView android:layout_width="match_parent"
         android:layout_height="40dp"
         android:layout_gravity="bottom"
-        android:text="取消"
+        android:text="取   消"
+        android:textSize="20dp"
         android:textAlignment="center"
         android:gravity="center_vertical"
         android:textColor="@color/colorHome"

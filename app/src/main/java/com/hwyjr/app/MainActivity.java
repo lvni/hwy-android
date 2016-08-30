@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity  {
     private String jsBackParams = "";
     private int inited = 0;
     private int resumed = 0;
+    private JSONObject shareContent ;
     private IWXAPI api;
     private Handler handler = new Handler(){
         @Override
@@ -112,7 +113,6 @@ public class MainActivity extends AppCompatActivity  {
         System.out.println("恢复了 " );
         Intent ct = getIntent();
         if ("login".equals(ct.getStringExtra("wx_type"))) {
-            System.out.println("微信登陆回调 " + ct.getStringExtra("wx_back") );
             handelWxLoginBack(ct.getStringExtra("wx_back"));
         }
         //
@@ -267,6 +267,12 @@ public class MainActivity extends AppCompatActivity  {
             @Override
             public void onClick(View v) {
                 System.out.println("分享到微信朋友");
+                if (!api.isWXAppInstalled()) {
+                    //提醒用户没有按照微信
+                    Toast.makeText(share_nt.getContext(), "请先安装微信!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
             }
         });
     }
@@ -342,6 +348,7 @@ public class MainActivity extends AppCompatActivity  {
                 case "share":
                     System.out.println("分享");
                     findViewById(R.id.share_box).setVisibility(View.VISIBLE);
+                    shareContent = jsonParams;
                     new Handler().postDelayed(new Runnable() {
                         @Override
                         public void run() {
