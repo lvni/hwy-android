@@ -64,14 +64,9 @@ public class MainActivity extends AppCompatActivity  {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        int payRet = -9999;
-        if (savedInstanceState != null) {
-            jsCallbacFunc = savedInstanceState.getString("jsCallbacFunc");
-            System.out.println("onCreate: temp = " + jsCallbacFunc);
-        }
 
         Bundle ct  = getIntent().getExtras();
-
+        System.out.println("onCreate called");
         setContentView(R.layout.activity_main);
 
         if (webview == null) {
@@ -91,15 +86,6 @@ public class MainActivity extends AppCompatActivity  {
             //第二次进入，不需要显示启动页
             handler.sendEmptyMessage(1);
 
-            //是否微信登陆返回
-            if ("login".equals(ct.getString("wx_type"))) {
-                handelWxPayBack(ct.getString("wx_back"));
-            }
-            //
-            if ("pay".equals(ct.getString("wx_type"))) {
-                handelWxLoginBack(ct.getString("wx_back"));
-            }
-
         } else {
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -116,30 +102,28 @@ public class MainActivity extends AppCompatActivity  {
 
     public void onResume() {
         super.onResume();
-        //jsCallbacFunc = (String)this.getIntent().getExtras().get("jsCallbacFunc");
+        Bundle by = this.getIntent().getExtras();
+        System.out.println("恢复了 " );
         Intent ct = getIntent();
+        System.out.println(ct.getStringExtra("wx_back"));
         if ("login".equals(ct.getStringExtra("wx_type"))) {
-            handelWxPayBack(ct.getStringExtra("wx_back"));
+            System.out.println("微信登陆回调 " + ct.getStringExtra("wx_back") );
+            handelWxLoginBack(ct.getStringExtra("wx_back"));
         }
         //
         if ("pay".equals(ct.getStringExtra("wx_type"))) {
-            handelWxLoginBack(ct.getStringExtra("wx_back"));
+            handelWxPayBack(ct.getStringExtra("wx_back"));
         }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString("jsCallbacFunc", jsCallbacFunc);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        if (savedInstanceState != null) {
-            jsCallbacFunc = savedInstanceState.getString("jsCallbacFunc");
-            System.out.println("onCreate: temp = " + jsCallbacFunc);
-        }
     }
 
     public void initWebview() {
@@ -277,9 +261,9 @@ public class MainActivity extends AppCompatActivity  {
             String JsContent = "var cid = setInterval(function(){" +
                     "if (typeof "+jsCallbacFunc+" == 'function') {" +
                     funcContent + ";clearInterval(cid) }}, 1000)";
-
-            //webview.loadUrl("javascript:"+jsCallbacFunc+" && "+jsCallbacFunc+"(" +jsBackParams+")");
-            webview.loadUrl("javascript:"+JsContent);
+            System.out.println("调用回调 " + "javascript:"+jsCallbacFunc+" && "+jsCallbacFunc+"(" +jsBackParams+")");
+            webview.loadUrl("javascript:"+jsCallbacFunc+" && "+jsCallbacFunc+"(" +jsBackParams+")");
+            //webview.loadUrl("javascript:"+JsContent);
             jsCallbacFunc = jsBackParams = "";
         }
     }
@@ -366,13 +350,13 @@ public class MainActivity extends AppCompatActivity  {
     }
 
     public void handelWxPayBack(String wxBack) {
-        jsCallbacFunc = "AppCall.PayBack";
+        jsCallbacFunc = "AppCall.wxPayBack";
         jsBackParams = wxBack;
         webviewCallback();
     }
 
     public void handelWxLoginBack(String wxBack) {
-        jsCallbacFunc = "AppCall.wxCallbackwx";
+        jsCallbacFunc = "AppCall.wxCallback";
         jsBackParams = wxBack;
         webviewCallback();
     }
@@ -405,18 +389,25 @@ public class MainActivity extends AppCompatActivity  {
         switch ( resultCode ) {
             case 0 :
                 if ("login".equals(data.getStringExtra("wx_type"))) {
-                    handelWxPayBack(data.getStringExtra("wx_back"));
+                    handelWxLoginBack(data.getStringExtra("wx_back"));
                 }
                 break;
             case 1:
                 if ("pay".equals(data.getStringExtra("wx_type"))) {
-                    handelWxLoginBack(data.getStringExtra("wx_back"));
+                    handelWxPayBack(data.getStringExtra("wx_back"));
                 }
                 break;
             default :
                 break;
         }
 
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        System.out.println("on new intent");
+        setIntent(intent);
     }
 
 

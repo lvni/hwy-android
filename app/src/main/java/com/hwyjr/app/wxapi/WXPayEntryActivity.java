@@ -21,7 +21,7 @@ import android.util.Log;
 /**
  * Created by zyl on 2016/8/27.
  */
-public class WXPayEntryActivity extends Activity implements IWXAPIEventHandler {
+public class WXPayEntryActivity extends AppCompatActivity implements IWXAPIEventHandler {
 
     private static final String TAG = "MicroMsg.SDKSample.WXPayEntryActivity";
 
@@ -30,7 +30,8 @@ public class WXPayEntryActivity extends Activity implements IWXAPIEventHandler {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        api = WXAPIFactory.createWXAPI(this, Const.APP_ID);
+        api = WXAPIFactory.createWXAPI(this, Const.APP_ID, false);
+        api.registerApp(Const.APP_ID);
         api.handleIntent(getIntent(), this);
     }
 
@@ -49,14 +50,12 @@ public class WXPayEntryActivity extends Activity implements IWXAPIEventHandler {
     @Override
     public void onResp(BaseResp resp) {
 
-        if (resp.getType() == ConstantsAPI.COMMAND_PAY_BY_WX) {
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.putExtra("wx_type", "pay");
-            String CallbackParams = "{errCode:"+resp.errCode+"}";
-            intent.putExtra("wx_back", CallbackParams);
-            //startActivity(intent);
-            startActivity(intent);
-            //startActivityForResult(intent, 1);
-        }
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("wx_type", "pay");
+        String CallbackParams = "{errCode:"+resp.errCode+"}";
+        intent.putExtra("wx_back", CallbackParams);
+        //startActivity(intent);
+        System.out.println("微信支付回调 " + CallbackParams);
+        startActivity(intent);
     }
 }

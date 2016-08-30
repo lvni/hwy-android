@@ -102,10 +102,11 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
         }
 
         Intent intent = new Intent(this, MainActivity.class);
+        System.out.println("微信（1）回调 " + CallbackParams);
         intent.putExtra("wx_type", "login");
         intent.putExtra("wx_back", CallbackParams);
-        startActivityForResult(intent, 0);
-        //startActivity(intent);
+        //startActivityForResult(intent, 0);
+        startActivity(intent);
 
 
         //this.webviewCallback(CallbackParams);
