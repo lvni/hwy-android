@@ -94,17 +94,25 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
         int result = resp.errCode;
         String CallbackParams = "";
         System.out.println("wx back " + resp.errCode);
+        Intent intent = new Intent(this, MainActivity.class);
         if (resp.getType() == ConstantsAPI.COMMAND_SENDAUTH) {
             String code = "";
             SendAuth.Resp authResp = (SendAuth.Resp) resp;
             code = authResp.code;
             CallbackParams = "{errCode:"+result+",code:\""+code+"\"}";
+            intent.putExtra("wx_type", "login");
+            intent.putExtra("wx_back", CallbackParams);
         }
 
-        Intent intent = new Intent(this, MainActivity.class);
+        if (resp.getType() == ConstantsAPI.COMMAND_SENDMESSAGE_TO_WX) {
+            CallbackParams = "{errCode:"+result+"}";
+            intent.putExtra("wx_type", "share");
+            intent.putExtra("wx_back", CallbackParams);
+        }
+
+
         System.out.println("微信（1）回调 " + CallbackParams);
-        intent.putExtra("wx_type", "login");
-        intent.putExtra("wx_back", CallbackParams);
+        ;
         //startActivityForResult(intent, 0);
         startActivity(intent);
 

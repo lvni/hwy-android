@@ -1,8 +1,10 @@
 package com.hwyjr.app;
 
 import com.hwyjr.app.R;
+import com.hwyjr.app.include.AsyncInterface;
 import com.hwyjr.app.include.Utils;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -25,6 +27,9 @@ import com.tencent.mm.sdk.modelbase.BaseReq;
 import com.tencent.mm.sdk.modelbase.BaseResp;
 import com.tencent.mm.sdk.constants .ConstantsAPI;
 import com.tencent.mm.sdk.modelmsg.SendAuth;
+import com.tencent.mm.sdk.modelmsg.SendMessageToWX;
+import com.tencent.mm.sdk.modelmsg.WXMediaMessage;
+import com.tencent.mm.sdk.modelmsg.WXWebpageObject;
 import com.tencent.mm.sdk.modelpay.PayReq;
 import com.tencent.mm.sdk.openapi.IWXAPI;
 import com.tencent.mm.sdk.openapi.IWXAPIEventHandler;
@@ -39,8 +44,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Set;
+import com.hwyjr.app.include.BitmapDownloaderTask;
 
-public class MainActivity extends AppCompatActivity  {
+public class MainActivity extends AppCompatActivity  implements AsyncInterface {
 
     protected WebView webview;
     protected LinearLayout NaviBar;
@@ -62,7 +68,7 @@ public class MainActivity extends AppCompatActivity  {
                     break;
                 case 2:
                     //关闭分享
-                    findViewById(R.id.share_box).setVisibility(View.GONE);
+                    hideShare();
                     break;
             }
         }
@@ -107,17 +113,22 @@ public class MainActivity extends AppCompatActivity  {
     }
 
 
+
+
     public void onResume() {
         super.onResume();
-        Bundle by = this.getIntent().getExtras();
         System.out.println("恢复了 " );
         Intent ct = getIntent();
         if ("login".equals(ct.getStringExtra("wx_type"))) {
-            handelWxLoginBack(ct.getStringExtra("wx_back"));
+            webviewCallback(ct.getStringExtra("wx_back"));
         }
         //
         if ("pay".equals(ct.getStringExtra("wx_type"))) {
-            handelWxPayBack(ct.getStringExtra("wx_back"));
+            webviewCallback(ct.getStringExtra("wx_back"));
+        }
+
+        if ("share".equals(ct.getStringExtra("wx_type"))) {
+            webviewCallback(ct.getStringExtra("wx_back"));
         }
         ct.removeExtra("wx_type");
     }
@@ -142,7 +153,7 @@ public class MainActivity extends AppCompatActivity  {
        // WebView.setWebContentsDebuggingEnabled(true);
         //设置ua
         String DefaultUa = webview.getSettings().getUserAgentString();
-        String NewUa = DefaultUa + " hwy/" + Utils.getVersionName(this) ;
+        String NewUa = DefaultUa + " hwy/" + Utils.getVersionName(this) + " (" + Utils.getVersionCode(this) + ")" ;
         webview.getSettings().setUserAgentString(NewUa);
         NaviBar = (LinearLayout)findViewById(R.id.navi_bar);
         final MainActivity self = this;
@@ -203,7 +214,6 @@ public class MainActivity extends AppCompatActivity  {
                 super.onPageFinished(view, url);
                 //回调js
                 //只有main.js 加载完成才回调
-                self.webviewCallback();
 
 
             }
@@ -257,22 +267,24 @@ public class MainActivity extends AppCompatActivity  {
         final FrameLayout share_nt = (FrameLayout)findViewById(R.id.share_box);
         ImageButton wxShFriend = (ImageButton)findViewById(R.id.share_wx_friend);
         ImageButton wxShTimeline = (ImageButton)findViewById(R.id.share_wx_timeline);
-
+        final MainActivity self = this;
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            share_nt.setVisibility(View.GONE);
+             hideShare();
         }});
         wxShFriend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                System.out.println("分享到微信朋友");
-                if (!api.isWXAppInstalled()) {
-                    //提醒用户没有按照微信
-                    Toast.makeText(share_nt.getContext(), "请先安装微信!", Toast.LENGTH_SHORT).show();
-                    return;
-                }
 
+                startShareWx(shareContent, SendMessageToWX.Req.WXSceneSession);
+            }
+        });
+        wxShTimeline.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                startShareWx(shareContent, SendMessageToWX.Req.WXSceneTimeline);
             }
         });
     }
@@ -298,18 +310,72 @@ public class MainActivity extends AppCompatActivity  {
      * 回调h5的js代码
      * @param
      */
-    public void webviewCallback() {
-        if (jsCallbacFunc != null && jsCallbacFunc != ""  && jsBackParams != "") {
-            webview.loadUrl("javascript:"+jsCallbacFunc+" && "+jsCallbacFunc+"(" +jsBackParams+")");
+    public void webviewCallback(String params) {
+        if (jsCallbacFunc != null && jsCallbacFunc != ""  && params != "") {
+            webview.loadUrl("javascript:"+jsCallbacFunc+" && "+jsCallbacFunc+"(" +params+")");
             //webview.loadUrl("javascript:"+JsContent);
             jsCallbacFunc = jsBackParams = "";
         }
     }
 
+
+    public void startShareWx(JSONObject params, int scence) {
+        BitmapDownloaderTask a = new BitmapDownloaderTask();
+        try {
+            params.put("scene", scence);
+            a.setCallBack(this, params);
+            a.execute(params.getString("img"));
+        } catch (Exception e) {
+             //不可能进来
+        }
+
+    }
+
+    /**
+     *  分享到微信
+     * @param params
+     * @param thumb
+     */
+     public void shareWx(JSONObject params, Bitmap thumb) {
+        try {
+            int sence = params.getInt("scene");
+            if (!api.isWXAppInstalled()) {
+                //提醒用户没有按照微信
+                Toast.makeText(this, "请先安装微信!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (params.has("link")) {
+                //有链接
+                WXWebpageObject webpage = new WXWebpageObject();
+                webpage.webpageUrl = params.getString("link");
+                WXMediaMessage msg = new WXMediaMessage(webpage);
+                msg.title = params.getString("title");
+                msg.description = params.getString("desc");
+                if (thumb != null) {
+                    msg.thumbData = Utils.bmpToByteArray(thumb, true);
+                }
+                SendMessageToWX.Req req = new SendMessageToWX.Req();
+                req.transaction = Utils.buildTransaction("webpage");
+                req.message = msg;
+                req.scene = sence;
+                api.sendReq(req);
+            } else if (params.has("img_url")) {
+                //纯图片
+
+            }
+        } catch (Exception e) {
+            //分享出现异常
+        }
+
+    }
+
+
+
     public void parseUrl(String url) {
         try {
             Uri uri = Uri.parse(url);
             String host = uri.getHost();
+
             jsCallbacFunc = uri.getQueryParameter("callback");
             String params = uri.getQueryParameter("params");
             //解析json格式的参数
@@ -369,7 +435,6 @@ public class MainActivity extends AppCompatActivity  {
 
                         try {
 
-                            this.saveData("order", jsonParams.getString("order_sn"));
                             PayReq request = new PayReq();
                             request.appId = jsonParams.getString("appid");
                             request.partnerId = jsonParams.getString("partnerid");
@@ -395,59 +460,6 @@ public class MainActivity extends AppCompatActivity  {
         }
     }
 
-    public void handelWxPayBack(String wxBack) {
-        jsCallbacFunc = "AppCall.wxPayBack";
-        jsBackParams = wxBack;
-        webviewCallback();
-    }
-
-    public void handelWxLoginBack(String wxBack) {
-        jsCallbacFunc = "AppCall.wxCallback";
-        jsBackParams = wxBack;
-        webviewCallback();
-    }
-    public void saveData(String key, String value) {
-        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString(key,value);
-        editor.commit();
-    }
-
-    public void removeData(String key) {
-        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.remove(key);
-        editor.commit();
-    }
-
-    public String getData(String key, String Default) {
-        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        return  sharedPref.getString(key, Default);
-    }
-
-    @Override
-    protected void onActivityResult( int requestCode, int resultCode, Intent data )
-    {
-
-
-        //
-
-        switch ( resultCode ) {
-            case 0 :
-                if ("login".equals(data.getStringExtra("wx_type"))) {
-                    handelWxLoginBack(data.getStringExtra("wx_back"));
-                }
-                break;
-            case 1:
-                if ("pay".equals(data.getStringExtra("wx_type"))) {
-                    handelWxPayBack(data.getStringExtra("wx_back"));
-                }
-                break;
-            default :
-                break;
-        }
-
-    }
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -455,6 +467,15 @@ public class MainActivity extends AppCompatActivity  {
         System.out.println("on new intent");
         setIntent(intent);
     }
+
+
+    public void imgdownload(Bitmap c, JSONObject params) {
+        shareWx(params, c);
+    }
+
+
+
+
 
 
 }
