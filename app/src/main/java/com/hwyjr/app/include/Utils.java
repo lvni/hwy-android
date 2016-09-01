@@ -80,7 +80,10 @@ public class Utils {
         Bitmap forThumb = Bitmap.createScaledBitmap(thumb, 100, 100,true);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         if (compress) {
-            forThumb.compress(Bitmap.CompressFormat.PNG, 80, baos);
+            if (forThumb.getByteCount() > 32 * 1024 ) {
+                forThumb.compress(Bitmap.CompressFormat.PNG, 50, baos);
+            }
+
         }
 
         return baos.toByteArray();

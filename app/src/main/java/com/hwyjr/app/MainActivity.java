@@ -359,6 +359,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
                 req.message = msg;
                 req.scene = sence;
                 api.sendReq(req);
+                hideShare();
             } else if (params.has("img_url")) {
                 //纯图片
 
