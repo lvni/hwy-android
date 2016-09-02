@@ -131,6 +131,9 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
         if ("share".equals(ct.getStringExtra("wx_type"))) {
             webviewCallback(ct.getStringExtra("wx_back"));
         }
+        if ("scan".equals(ct.getStringExtra("wx_type"))) {
+            webviewCallback(ct.getStringExtra("ret"));
+        }
         ct.removeExtra("wx_type");
     }
 
@@ -370,6 +373,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
             }
         } catch (Exception e) {
             //分享出现异常
+            Toast.makeText(this, "分享出现问题", Toast.LENGTH_SHORT).show();
         }
 
     }

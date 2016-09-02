@@ -37,6 +37,7 @@ import com.google.zxing.DecodeHintType;
 import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
+import com.hwyjr.app.MainActivity;
 import com.hwyjr.app.R;
 import com.hwyjr.app.zxing.camera.CameraManager;
 import com.hwyjr.app.zxing.decoding.CaptureActivityHandler;
@@ -165,7 +166,12 @@ public class MipcaActivityCapture extends FragmentActivity implements Callback {
 	 * @param bitmap
 	 */
 	private void onResultHandler(String resultString, Bitmap bitmap){
-		System.out.println("result " + resultString);
+
+		Intent intent = new Intent(this, MainActivity.class);
+		intent.putExtra("wx_type", "scan");
+		intent.putExtra("ret", "{errCode:0,content:'" + resultString + "'}");
+		startActivity(intent);
+
 	}
 	
 	
