@@ -169,15 +169,15 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
         webview.getSettings().setAppCacheEnabled(true);
        // WebView.setWebContentsDebuggingEnabled(true);
         //设置ua
-        String chanelId = "000000";
+        int chanelId = 0;
         try {
             ApplicationInfo appInfo = this.getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA);
-            chanelId =appInfo.metaData.getString("CHANNEL");
+            chanelId = appInfo.metaData.getInt("CHANNEL");
         } catch (Exception e) {
             //获取不到元数据就算了
         }
         String DefaultUa = webview.getSettings().getUserAgentString();
-        String NewUa = DefaultUa + " hwy/" + Utils.getVersionName(this) + " (" + Utils.getVersionCode(this) + ") chanel("+chanelId+")" ;
+        String NewUa = DefaultUa + " hwy/" + Utils.getVersionName(this) + " (" + Utils.getVersionCode(this) + ") channel("+chanelId+")" ;
         webview.getSettings().setUserAgentString(NewUa);
         NaviBar = (LinearLayout)findViewById(R.id.navi_bar);
 
