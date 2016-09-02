@@ -2,13 +2,13 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="55dip"
-    android:background="@drawable/mmtitle_bg_alpha" >
+    android:background="@color/black" >
 
     <Button
         android:id="@+id/button_back"
-        android:layout_width="95.0dip"
-        android:text="返回"
-        android:background="@drawable/mm_title_back_btn"
+        android:layout_width="60dp"
+        android:background="@color/black"
+        android:text="关闭"
         android:textColor="@android:color/white"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"

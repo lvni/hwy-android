@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
             webviewCallback(ct.getStringExtra("wx_back"));
         }
         if ("scan".equals(ct.getStringExtra("wx_type"))) {
-            webviewCallback(ct.getStringExtra("ret"));
+            webviewCallback(ct.getStringExtra("wx_back"));
         }
         ct.removeExtra("wx_type");
     }

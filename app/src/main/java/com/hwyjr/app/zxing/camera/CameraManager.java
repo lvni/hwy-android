@@ -40,8 +40,8 @@ public final class CameraManager {
 
   private static final int MIN_FRAME_WIDTH = 300;
   private static final int MIN_FRAME_HEIGHT = 270;
-  private static final int MAX_FRAME_WIDTH = 400;
-  private static final int MAX_FRAME_HEIGHT = 400;
+  private static final int MAX_FRAME_WIDTH = 600;
+  private static final int MAX_FRAME_HEIGHT = 600;
 
   private static CameraManager cameraManager;
 

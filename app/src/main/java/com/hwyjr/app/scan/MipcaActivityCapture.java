@@ -169,7 +169,7 @@ public class MipcaActivityCapture extends FragmentActivity implements Callback {
 
 		Intent intent = new Intent(this, MainActivity.class);
 		intent.putExtra("wx_type", "scan");
-		intent.putExtra("ret", "{errCode:0,content:'" + resultString + "'}");
+		intent.putExtra("wx_back", "{errCode:0,content:'" + resultString + "'}");
 		startActivity(intent);
 
 	}
