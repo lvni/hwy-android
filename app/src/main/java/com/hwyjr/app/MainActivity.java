@@ -2,16 +2,22 @@ package com.hwyjr.app;
 
 import com.hwyjr.app.R;
 import com.hwyjr.app.include.AsyncInterface;
+import com.hwyjr.app.include.FileUtils;
 import com.hwyjr.app.include.Utils;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.KeyEvent;
+import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.os.Handler;
@@ -44,8 +50,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.Set;
 import com.hwyjr.app.include.BitmapDownloaderTask;
+import android.os.Message;
 
 public class MainActivity extends AppCompatActivity  implements AsyncInterface {
 
@@ -58,6 +66,9 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
     private int resumed = 0;
     private JSONObject shareContent ;
     private IWXAPI api;
+    private static final int FILECHOOSER_RESULTCODE = 1;
+    private ValueCallback<Uri[]> mUploadMessage;
+    private ValueCallback<Uri> mUploadMessage1;
     private Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -161,6 +172,68 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
         webview.getSettings().setUserAgentString(NewUa);
         NaviBar = (LinearLayout)findViewById(R.id.navi_bar);
 
+        webview.setWebChromeClient(new WebChromeClient(){
+            // For Android 3.0+
+            public void openFileChooser(ValueCallback<Uri> uploadMsg) {
+                if (mUploadMessage1 != null) {
+                    mUploadMessage1.onReceiveValue(null);
+                }
+                mUploadMessage1 = uploadMsg;
+                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                i.addCategory(Intent.CATEGORY_OPENABLE);
+                i.setType("*/*");
+                startActivityForResult(Intent.createChooser(i, "File Chooser"), FILECHOOSER_RESULTCODE);
+            }
+
+            // For Android 3.0+
+            public void openFileChooser(ValueCallback uploadMsg, String acceptType) {
+                if (mUploadMessage1 != null) {
+                    mUploadMessage1.onReceiveValue(null);
+                }
+                mUploadMessage1 = uploadMsg;
+                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                i.addCategory(Intent.CATEGORY_OPENABLE);
+                String type = TextUtils.isEmpty(acceptType) ? "*/*" : acceptType;
+                i.setType(type);
+                startActivityForResult(Intent.createChooser(i, "File Chooser"),
+                        FILECHOOSER_RESULTCODE);
+            }
+
+            // For Android 4.1
+            public void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType, String capture) {
+                if (mUploadMessage1 != null) {
+                    mUploadMessage1.onReceiveValue(null);
+                }
+                mUploadMessage1 = uploadMsg;
+                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                i.addCategory(Intent.CATEGORY_OPENABLE);
+                String type = TextUtils.isEmpty(acceptType) ? "*/*" : acceptType;
+                i.setType(type);
+                startActivityForResult(Intent.createChooser(i, "File Chooser"), FILECHOOSER_RESULTCODE);
+            }
+
+
+            //Android 5.0+
+            @Override
+            @SuppressLint("NewApi")
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                if (mUploadMessage != null) {
+                    mUploadMessage.onReceiveValue(null);
+                }
+                mUploadMessage = filePathCallback;
+                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                i.addCategory(Intent.CATEGORY_OPENABLE);
+                if (fileChooserParams != null && fileChooserParams.getAcceptTypes() != null
+                        && fileChooserParams.getAcceptTypes().length > 0) {
+                    i.setType(fileChooserParams.getAcceptTypes()[0]);
+                } else {
+                    i.setType("*/*");
+                }
+                startActivityForResult(Intent.createChooser(i, "File Chooser"), FILECHOOSER_RESULTCODE);
+                return true;
+            }
+
+        });
         //覆盖WebView默认使用第三方或系统默认浏览器打开网页的行为，使网页用WebView打开
         webview.setWebViewClient(new WebViewClient(){
             @Override
@@ -234,6 +307,35 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
         });
 
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == FILECHOOSER_RESULTCODE) {
+            if (null == mUploadMessage) return;
+            Uri result = data == null || resultCode != RESULT_OK ? null : data.getData();
+            if (result == null) {
+                mUploadMessage.onReceiveValue(null);
+                mUploadMessage = null;
+                return;
+            }
+            String path =  FileUtils.getPath(this, result);
+            if (TextUtils.isEmpty(path)) {
+                mUploadMessage.onReceiveValue(null);
+                mUploadMessage = null;
+                return;
+            }
+            Uri uri = Uri.fromFile(new File(path));
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mUploadMessage.onReceiveValue(new Uri[]{uri});
+            } else {
+                mUploadMessage1.onReceiveValue(uri);
+            }
+
+            mUploadMessage = null;
+        }
     }
 
     public void WebViewBack() {
