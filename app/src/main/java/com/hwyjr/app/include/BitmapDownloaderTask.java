@@ -43,6 +43,10 @@ public class BitmapDownloaderTask extends AsyncTask<String, Void, Bitmap> {
     static Bitmap downloadBitmap(String url) {
         Bitmap bitmap = null;
         try {
+
+            if (url == null || url.equals("")) {
+                return bitmap;
+            }
             URL picUrl = new URL(url);
             HttpURLConnection conn = (HttpURLConnection) picUrl
                     .openConnection();

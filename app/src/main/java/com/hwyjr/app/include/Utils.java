@@ -81,7 +81,7 @@ public class Utils {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         if (compress) {
             if (forThumb.getByteCount() > 32 * 1024 ) {
-                forThumb.compress(Bitmap.CompressFormat.PNG, 50, baos);
+                forThumb.compress(Bitmap.CompressFormat.PNG, 20, baos);
             }
 
         }

@@ -309,6 +309,12 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
 
     }
 
+    /**
+     *  文件选择回调
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -338,11 +344,10 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
         }
     }
 
-    public void WebViewBack() {
-        if (webview.canGoBack()) {
-            webview.goBack();
-        }
-    }
+
+    /**
+     * 初始化导航按钮事件
+     */
     public void initNaviBarEvent() {
         //初始化naviBar事件
         ImageButton ibnt = (ImageButton)findViewById(R.id.wb_back);
