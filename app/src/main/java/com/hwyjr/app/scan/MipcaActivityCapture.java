@@ -38,16 +38,12 @@ import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 import com.hwyjr.app.R;
-import com.hwyjr.app.http.LogUtil;
-import com.hwyjr.app.util.MyToast;
 import com.hwyjr.app.zxing.camera.CameraManager;
 import com.hwyjr.app.zxing.decoding.CaptureActivityHandler;
 import com.hwyjr.app.zxing.decoding.InactivityTimer;
 import com.hwyjr.app.zxing.decoding.RGBLuminanceSource;
 import com.hwyjr.app.zxing.view.ViewfinderView;
-import com.zhy.m.permission.MPermissions;
-import com.zhy.m.permission.PermissionDenied;
-import com.zhy.m.permission.PermissionGrant;
+
 /**
  * Initial the camera
  * @author Ryan.Tang
@@ -76,7 +72,7 @@ public class MipcaActivityCapture extends FragmentActivity implements Callback {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_capture);
-		 MPermissions.requestPermissions(this, REQUECT_CAMEAR, Manifest.permission.CAMERA);
+
 		
 		//相机初始化
 		viewfinderView = (ViewfinderView) findViewById(R.id.viewfinder_view);
@@ -96,25 +92,7 @@ public class MipcaActivityCapture extends FragmentActivity implements Callback {
 			inactivityTimer = new InactivityTimer(this);
 		
 	}
-	@Override
-	public void onRequestPermissionsResult(int requestCode,
-			String[] permissions, int[] grantResults) {
-		// TODO Auto-generated method stub
-		MPermissions.onRequestPermissionsResult(this, requestCode, permissions, grantResults);
-		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-	}
-		@PermissionGrant(REQUECT_CAMEAR)
-	 public void requestSdcardSuccess()
-	    {
-	        Toast.makeText(this, "开启权限成功", Toast.LENGTH_SHORT).show();
-	    }
 
-	    @PermissionDenied(REQUECT_CAMEAR)
-	    public void requestSdcardFailed()
-	    {
-	        Toast.makeText(this, "开启权限失败，请在设置→应用里面开启读取SD卡权限", Toast.LENGTH_SHORT).show();
-	    }
-	
 	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -187,20 +165,7 @@ public class MipcaActivityCapture extends FragmentActivity implements Callback {
 	 * @param bitmap
 	 */
 	private void onResultHandler(String resultString, Bitmap bitmap){
-		if(TextUtils.isEmpty(resultString)){
-			Toast.makeText(MipcaActivityCapture.this, "Scan failed!", Toast.LENGTH_SHORT).show();
-			return;
-		}
-LogUtil.showLogE("网络链接"+resultString);
-String res= resultString.substring(0, 4);
-		if(res.equals("http")){
-			
-			Intent intent = new Intent(Intent.ACTION_VIEW);
-			intent.setData(Uri.parse(resultString));
-			startActivity(intent);
-		}else{
-			MyToast.ToastS("该二维码不是链接");
-		}
+		System.out.println("result " + resultString);
 	}
 	
 	

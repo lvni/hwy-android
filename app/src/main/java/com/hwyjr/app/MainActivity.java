@@ -23,6 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.ViewFlipper;
 import com.hwyjr.app.include.Const;
 
+import com.hwyjr.app.scan.MipcaActivityCapture;
 import com.tencent.mm.sdk.modelbase.BaseReq;
 import com.tencent.mm.sdk.modelbase.BaseResp;
 import com.tencent.mm.sdk.constants .ConstantsAPI;
@@ -156,7 +157,6 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
         String NewUa = DefaultUa + " hwy/" + Utils.getVersionName(this) + " (" + Utils.getVersionCode(this) + ")" ;
         webview.getSettings().setUserAgentString(NewUa);
         NaviBar = (LinearLayout)findViewById(R.id.navi_bar);
-        final MainActivity self = this;
 
         //覆盖WebView默认使用第三方或系统默认浏览器打开网页的行为，使网页用WebView打开
         webview.setWebViewClient(new WebViewClient(){
@@ -186,7 +186,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
                     System.out.println(url);
                     //自定义协议
 
-                    (self).parseUrl(url);
+                    parseUrl(url);
                 }
 
                 return true;
@@ -321,13 +321,17 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
 
     public void startShareWx(JSONObject params, int scence) {
         BitmapDownloaderTask a = new BitmapDownloaderTask();
+        String img = null;
         try {
+
             params.put("scene", scence);
-            a.setCallBack(this, params);
-            a.execute(params.getString("img"));
+            img = params.getString("img");
+
         } catch (Exception e) {
              //不可能进来
         }
+        a.setCallBack(this, params);
+        a.execute(img);
 
     }
 
@@ -411,6 +415,8 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
                     break;
                 case "scan":
                     System.out.println("扫码");
+                    Intent iten = new Intent(MainActivity.this, MipcaActivityCapture.class);
+                    startActivity(iten);
                     break;
                 case "share":
                     System.out.println("分享");
