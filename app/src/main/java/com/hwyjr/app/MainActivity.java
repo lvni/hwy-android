@@ -9,6 +9,8 @@ import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -167,8 +169,15 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
         webview.getSettings().setAppCacheEnabled(true);
        // WebView.setWebContentsDebuggingEnabled(true);
         //设置ua
+        String chanelId = "000000";
+        try {
+            ApplicationInfo appInfo = this.getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA);
+            chanelId =appInfo.metaData.getString("CHANNEL");
+        } catch (Exception e) {
+            //获取不到元数据就算了
+        }
         String DefaultUa = webview.getSettings().getUserAgentString();
-        String NewUa = DefaultUa + " hwy/" + Utils.getVersionName(this) + " (" + Utils.getVersionCode(this) + ")" ;
+        String NewUa = DefaultUa + " hwy/" + Utils.getVersionName(this) + " (" + Utils.getVersionCode(this) + ") chanel("+chanelId+")" ;
         webview.getSettings().setUserAgentString(NewUa);
         NaviBar = (LinearLayout)findViewById(R.id.navi_bar);
 

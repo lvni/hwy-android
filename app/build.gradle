@@ -28,6 +28,44 @@ android {
             signingConfig signingConfigs.hwy
         }
     }
+
+    productFlavors {
+        official {
+            manifestPlaceholders = [CHANNEL_VALUE: "100000"]
+        }
+        qihu360 {
+            manifestPlaceholders = [CHANNEL_VALUE: "100100"]
+        }
+        baidu {
+            manifestPlaceholders = [CHANNEL_VALUE: "100200"]
+        }
+        huawei {
+            manifestPlaceholders = [CHANNEL_VALUE: "100300"]
+        }
+        wangdoujia {
+            manifestPlaceholders = [CHANNEL_VALUE: "100400"]
+        }
+        oppo {
+            manifestPlaceholders = [CHANNEL_VALUE: "100500"]
+        }
+        ppzhushou {
+            manifestPlaceholders = [CHANNEL_VALUE: "100600"]
+        }
+        xiaomi {
+            manifestPlaceholders = [CHANNEL_VALUE: "100700"]
+        }
+        mumayi {
+            manifestPlaceholders = [CHANNEL_VALUE: "100800"]
+        }
+        sogou {
+            manifestPlaceholders = [CHANNEL_VALUE: "100900"]
+        }
+        yingyongbao {
+            manifestPlaceholders = [CHANNEL_VALUE: "101000"]
+        }
+
+    }
+
 }
 
 dependencies {
