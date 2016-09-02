@@ -6,8 +6,8 @@ package com.hwyjr.app.include;
 public class Const {
 
     public static final Boolean DEBUG = false;
-    // public static final String WEB_PORTAL = "http://app.hong5ye.com/webapp/";
-    public static final String WEB_PORTAL = "http://app.hong5ye.com/test/webapp/";
+    public static final String WEB_PORTAL = "http://app.hong5ye.com/webapp/";
+    // public static final String WEB_PORTAL = "http://app.hong5ye.com/test/webapp/";
     public static final String WEB_HOST = "hong5ye.com";
     public static final String APP_ID = "wxbbab02d24a62a8a2";
 
