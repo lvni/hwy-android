@@ -416,6 +416,8 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+
         if(keyCode == KeyEvent.KEYCODE_BACK && webview.canGoBack()){
             webview.goBack();//返回上个页面
             return true;
@@ -575,6 +577,9 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
                             e.printStackTrace();
                         }
                     }
+                    break;
+                case  "close":
+                    finish();
                     break;
                 default:
                     return;
