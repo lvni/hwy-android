@@ -563,6 +563,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
                         req.state = "wechat_sdk_hwy";
                         api.sendReq(req);
                         //finish();
+                        return ;
                     }
                     System.out.println("登录");
                     break;
@@ -607,13 +608,17 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
                         } catch(Exception e) {
                             e.printStackTrace();
                         }
+                        return ;
+                    } else {
+                        Toast.makeText(this, "目前不支持，请更新最新版本app", Toast.LENGTH_SHORT).show();
                     }
                     break;
                 case  "close":
                     finish();
                     break;
                 default:
-                    return;
+                    Toast.makeText(this, "目前不支持，请更新最新版本app", Toast.LENGTH_SHORT).show();
+                    break;
             }
 
 
@@ -621,6 +626,8 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
             e.printStackTrace();
             return ;
         }
+
+
     }
 
 
