@@ -445,7 +445,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
         if(keyCode == KeyEvent.KEYCODE_BACK && webview.canGoBack()){
 
             String url = webview.getOriginalUrl();
-            if (url == Const.WEB_PORTAL 
+            if (url == Const.WEB_PORTAL
                     || url.contains(Const.WEB_PORTAL + "index.html")
                     || webview.getOriginalUrl().contains(Const.ERROR_PAGE)) {
                 finish();

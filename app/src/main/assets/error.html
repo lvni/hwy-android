@@ -28,7 +28,7 @@ var getQueryString = function(name) {
     
     url = getQueryString("url");
     document.getElementById("refresh").onclick = function(){
-         location.href = url;
+         location.replace(url);
     }
 </script>
 </body>
