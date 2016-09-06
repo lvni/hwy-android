@@ -1,0 +1,35 @@
+<!doctype html><html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no">
+<META NAME="MobileOptimized" CONTENT="240">
+</head>
+<body style="margin:0;padding:0;background:#eee;">
+
+<div style="text-align: center;margin-top:40%;">
+<img src="no_net.png" style="width:40%;" id="refresh">
+<div style="color:#666;padding-top:20px;">当前网络不可用，请设置网络后刷新~</div>
+</div>
+<script>
+var getQueryString = function(name) {
+        var url = window.location.search;
+        var theRequest = new Object();
+        if (url.indexOf("?") != -1) {
+          var str = url.substr(1);
+          strs = str.split("&");
+          for(var i = 0; i < strs.length; i ++) {
+             theRequest[strs[i].split("=")[0]]=(strs[i].split("=")[1]);
+          }
+       }
+       if (name in theRequest) {
+           return decodeURI(theRequest[name]);
+       }
+       return ''; 
+    }
+    
+    url = getQueryString("url");
+    document.getElementById("refresh").onclick = function(){
+         location.href = url;
+    }
+</script>
+</body>
+</html>

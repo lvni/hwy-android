@@ -12,6 +12,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
@@ -95,6 +96,10 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
         System.out.println("onCreate called");
         setContentView(R.layout.activity_main);
 
+
+        if (!Utils.isNetworkConnected(this)) {
+            Toast.makeText(this, "网络无法连接", Toast.LENGTH_SHORT).show();
+        }
         if (webview == null) {
             webview = (WebView) findViewById(R.id.container);
             allFlipper = (ViewFlipper) findViewById(R.id.allFlipper);
@@ -167,6 +172,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
         webview.getSettings().setDomStorageEnabled(true);
         webview.getSettings().setAllowFileAccess(true);
         webview.getSettings().setAppCacheEnabled(true);
+        webview.getSettings().setDefaultTextEncodingName("UTF-8");
        // WebView.setWebContentsDebuggingEnabled(true);
         //设置ua
         int chanelId = 0;
@@ -306,8 +312,11 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
             @Override
             public void onReceivedError(WebView view, int errorCode,
                                         String description, String failingUrl)  {
-                super.onReceivedError( view, errorCode,
-                        description, failingUrl);
+                super.onReceivedError( view, errorCode, description, failingUrl);
+
+                System.out.println("code " + errorCode);
+                System.out.println("加载出错了 " + failingUrl);
+                loadEorrrPage(failingUrl);
             }
 
 
@@ -316,6 +325,17 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
         });
 
 
+    }
+
+
+    public void loadEorrrPage(String failingUrl) {
+
+        String url = Const.ERROR_PAGE + "?url=" + failingUrl;
+        try {
+            webview.loadUrl(url);
+        } catch (Exception e) {
+            System.out.println("失败页异常");
+        }
     }
 
     /**
@@ -418,9 +438,15 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
 
+        if(keyCode == KeyEvent.KEYCODE_BACK && webview.canGoBack()) {
+            if (webview.getOriginalUrl().contains(Const.ERROR_PAGE)) {
+                finish();
+            }
+        }
         if(keyCode == KeyEvent.KEYCODE_BACK && webview.canGoBack()){
 
             String url = webview.getOriginalUrl();
+
             if (url == Const.WEB_PORTAL || url.contains(Const.WEB_PORTAL + "index.html") ) {
                 finish();
             }
