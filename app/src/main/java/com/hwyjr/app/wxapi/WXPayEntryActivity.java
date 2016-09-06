@@ -57,5 +57,6 @@ public class WXPayEntryActivity extends AppCompatActivity implements IWXAPIEvent
         //startActivity(intent);
         System.out.println("微信支付回调 " + CallbackParams);
         startActivity(intent);
+        finish();
     }
 }

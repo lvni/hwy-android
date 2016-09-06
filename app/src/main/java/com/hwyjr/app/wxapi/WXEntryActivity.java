@@ -115,6 +115,7 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
         ;
         //startActivityForResult(intent, 0);
         startActivity(intent);
+        finish();
 
 
         //this.webviewCallback(CallbackParams);
