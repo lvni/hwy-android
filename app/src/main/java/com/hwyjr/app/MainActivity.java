@@ -330,6 +330,9 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
 
     public void loadEorrrPage(String failingUrl) {
 
+        if (failingUrl == null || failingUrl == "") {
+            failingUrl = Const.WEB_PORTAL;
+        }
         String url = Const.ERROR_PAGE + "?url=" + failingUrl;
         try {
             webview.loadUrl(url);
@@ -438,16 +441,13 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
 
-        if(keyCode == KeyEvent.KEYCODE_BACK && webview.canGoBack()) {
-            if (webview.getOriginalUrl().contains(Const.ERROR_PAGE)) {
-                finish();
-            }
-        }
+
         if(keyCode == KeyEvent.KEYCODE_BACK && webview.canGoBack()){
 
             String url = webview.getOriginalUrl();
-
-            if (url == Const.WEB_PORTAL || url.contains(Const.WEB_PORTAL + "index.html") ) {
+            if (url == Const.WEB_PORTAL 
+                    || url.contains(Const.WEB_PORTAL + "index.html")
+                    || webview.getOriginalUrl().contains(Const.ERROR_PAGE)) {
                 finish();
             }
             webview.goBack();//返回上个页面
