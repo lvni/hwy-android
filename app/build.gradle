@@ -63,6 +63,12 @@ android {
         yingyongbao {
             manifestPlaceholders = [CHANNEL_VALUE: "101000"]
         }
+        meizu {
+            manifestPlaceholders = [CHANNEL_VALUE: "101100"]
+        }
+        feihuo {
+            manifestPlaceholders = [CHANNEL_VALUE: "101200"]
+        }
 
     }
 

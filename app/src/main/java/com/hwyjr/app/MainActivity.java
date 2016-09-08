@@ -250,7 +250,6 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
             }
 
         });
-
         webview.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
