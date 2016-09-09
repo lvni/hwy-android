@@ -30,13 +30,13 @@ android:layout_height="fill_parent" >
             android:layout_height="50dp"
             android:layout_centerHorizontal="true"
             layout="@layout/navi_bar" />
-        <WebView
+        <com.hwyjr.app.view.MyWebView
             android:id="@+id/container"
             android:layout_width="fill_parent"
             android:layout_height="match_parent"
             android:scrollbars="none">
 
-        </WebView>
+        </com.hwyjr.app.view.MyWebView>
     </LinearLayout>
         <include
             android:layout_width="match_parent"

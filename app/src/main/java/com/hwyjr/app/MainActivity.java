@@ -28,12 +28,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.LinearLayout;
 import android.widget.ViewFlipper;
 import com.hwyjr.app.include.Const;
 
 import com.hwyjr.app.scan.MipcaActivityCapture;
+import com.hwyjr.app.view.MyWebView;
 import com.tencent.mm.sdk.modelbase.BaseReq;
 import com.tencent.mm.sdk.modelbase.BaseResp;
 import com.tencent.mm.sdk.constants .ConstantsAPI;
@@ -59,13 +61,16 @@ import java.util.Set;
 import com.hwyjr.app.include.BitmapDownloaderTask;
 import android.os.Message;
 
-public class MainActivity extends AppCompatActivity  implements AsyncInterface {
+public class MainActivity extends AppCompatActivity  implements AsyncInterface, MyWebView.LongClickCallBack {
 
-    protected WebView webview;
+    protected MyWebView webview;
     protected LinearLayout NaviBar;
     private ViewFlipper allFlipper;
     private String jsCallbacFunc = "" ;
     private String jsBackParams = "";
+
+
+
     private int inited = 0;
     private int resumed = 0;
     private JSONObject shareContent ;
@@ -73,6 +78,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
     private static final int FILECHOOSER_RESULTCODE = 1;
     private ValueCallback<Uri[]> mUploadMessage;
     private ValueCallback<Uri> mUploadMessage1;
+    ProgressBar progressbar;
     private Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -102,7 +108,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
             Toast.makeText(this, "网络无法连接", Toast.LENGTH_SHORT).show();
         }
         if (webview == null) {
-            webview = (WebView) findViewById(R.id.container);
+            webview = (MyWebView) findViewById(R.id.container);
             allFlipper = (ViewFlipper) findViewById(R.id.allFlipper);
             this.initWebview();
             this.initNaviBarEvent();
@@ -167,13 +173,14 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
     }
 
     public void initWebview() {
-        this.inited = 1;
-
         webview.getSettings().setJavaScriptEnabled(true);
         webview.getSettings().setDomStorageEnabled(true);
         webview.getSettings().setAllowFileAccess(true);
         webview.getSettings().setAppCacheEnabled(true);
         webview.getSettings().setDefaultTextEncodingName("UTF-8");
+        webview.setLongClickCallBack(this);  //注册长按
+        //提高网页加载速度，暂时阻塞图片加载，然后网页加载好了，在进行加载图片
+        webview.getSettings().setBlockNetworkImage(true);
        // WebView.setWebContentsDebuggingEnabled(true);
         //设置ua
         int chanelId = 0;
@@ -187,7 +194,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
         String NewUa = DefaultUa + " hwy/" + Utils.getVersionName(this) + " (" + Utils.getVersionCode(this) + ") channel("+chanelId+")" ;
         webview.getSettings().setUserAgentString(NewUa);
         NaviBar = (LinearLayout)findViewById(R.id.navi_bar);
-
+        progressbar = webview.getProgressBar(); //获取进度条
         webview.setWebChromeClient(new WebChromeClient(){
             // For Android 3.0+
             public void openFileChooser(ValueCallback<Uri> uploadMsg) {
@@ -249,7 +256,22 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
                 return true;
             }
 
+            @Override
+            public void onProgressChanged(WebView view, int newProgress) {
+                if (newProgress == 100) {
+                    progressbar.setVisibility(View.GONE);
+                } else {
+                    if (progressbar.getVisibility() == View.GONE)
+                        progressbar.setVisibility(View.VISIBLE);
+                    progressbar.setProgress(newProgress);
+                }
+                super.onProgressChanged(view, newProgress);
+            }
+
+
         });
+
+        //使用默认浏览器下载资源
         webview.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
@@ -313,8 +335,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
 
                 //开始
                 super.onPageFinished(view, url);
-                //回调js
-                //只有main.js 加载完成才回调
+                view.getSettings().setBlockNetworkImage(false);
 
 
             }
@@ -337,7 +358,10 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
 
     }
 
-
+    /**
+     * 加载显示错误页，当网络不能用是出现
+     * @param failingUrl
+     */
     public void loadEorrrPage(String failingUrl) {
 
         if (failingUrl == null || failingUrl == "") {
@@ -653,7 +677,15 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface {
         shareWx(params, c);
     }
 
+    /**
+     * webview长按图片回调
+     * @param imgUrl
+     */
+    @Override
+    public void onLongClickCallBack(String imgUrl) {
 
+
+    }
 
 
 
