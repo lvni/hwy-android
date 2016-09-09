@@ -79,11 +79,17 @@ public class Utils {
 
 
     public static byte[] bmpToByteArray(Bitmap thumb, boolean compress) {
-        Bitmap forThumb = Bitmap.createScaledBitmap(thumb, 100, 100,true);
+        Bitmap forThumb;
+        int height = thumb.getHeight();
+        int newWidth = 100;
+        int newheight = (int)((thumb.getHeight() * 1.0 / thumb.getWidth()) * 100);
+        newheight = 100;
+        forThumb = Bitmap.createScaledBitmap(thumb, newWidth, newheight,true);
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         if (compress) {
             if (forThumb.getByteCount() > 32 * 1024 ) {
-                forThumb.compress(Bitmap.CompressFormat.PNG, 20, baos);
+                forThumb.compress(Bitmap.CompressFormat.PNG, 30, baos);
             }
 
         }
