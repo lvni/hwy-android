@@ -32,7 +32,7 @@ public class MyWebView extends WebView implements View.OnLongClickListener{
 
     public void init(Context context) {
         progressBar = new ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal);
-        progressBar.setLayoutParams(new AbsoluteLayout.LayoutParams(AbsoluteLayout.LayoutParams.MATCH_PARENT, 7, 0, 0));
+        progressBar.setLayoutParams(new AbsoluteLayout.LayoutParams(AbsoluteLayout.LayoutParams.MATCH_PARENT, 6, 0, 0));
         progressBar.setProgressDrawable(getResources().getDrawable(R.drawable.webview_progressbar));
         addView(progressBar);
         setOnLongClickListener(this);
@@ -65,7 +65,7 @@ public class MyWebView extends WebView implements View.OnLongClickListener{
     public boolean onLongClick(View v) {
         // 长按事件监听（注意：需要实现LongClickCallBack接口并传入对象）
         final HitTestResult htr = getHitTestResult();//获取所点击的内容
-        System.out.println("webview 长按");
+        System.out.println("webview 长按 " + htr.getType() + " == " + WebView.HitTestResult.IMAGE_TYPE);
         if (htr.getType() == WebView.HitTestResult.IMAGE_TYPE) {//判断被点击的类型为图片
             if (mCallBack != null) {
                 mCallBack.onLongClickCallBack(htr.getExtra());

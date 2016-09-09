@@ -26,8 +26,11 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.os.Handler;
 import android.os.Message;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.LinearLayout;
@@ -35,6 +38,7 @@ import android.widget.ViewFlipper;
 import com.hwyjr.app.include.Const;
 
 import com.hwyjr.app.scan.MipcaActivityCapture;
+import com.hwyjr.app.view.MyDialog;
 import com.hwyjr.app.view.MyWebView;
 import com.tencent.mm.sdk.modelbase.BaseReq;
 import com.tencent.mm.sdk.modelbase.BaseResp;
@@ -68,6 +72,9 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
     private ViewFlipper allFlipper;
     private String jsCallbacFunc = "" ;
     private String jsBackParams = "";
+
+    private MyDialog mCustomDialog;
+    private ArrayAdapter<String> adapter;
 
 
 
@@ -689,8 +696,57 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
     @Override
     public void onLongClickCallBack(String imgUrl) {
 
+        showDialog();
         System.out.println("长按图片了 " + imgUrl);
 
+    }
+
+
+    /**
+     * 显示Dialog
+     * @param
+     */
+    private void  showDialog() {
+
+        adapter = new ArrayAdapter<String>(this,R.layout.item_dialog);
+        adapter.add("发送给朋友");
+        adapter.add("保存到手机");
+
+        mCustomDialog = new MyDialog(this, R.layout.custom_dialog) {
+
+            @Override
+            public void initViews() {
+                // 初始CustomDialog化控件
+                ListView mListView = (ListView) findViewById(R.id.listView);
+                mListView.setAdapter(adapter);
+                mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        // 点击事件
+                        switch (position) {
+                            case 0:
+                                Toast.makeText(MainActivity.this, "已发送给朋友", Toast.LENGTH_LONG).show();
+                                closeDialog();
+                                break;
+                            case 1:
+                                Toast.makeText(MainActivity.this, "已保存到手机", Toast.LENGTH_LONG).show();
+                                closeDialog();
+                                break;
+                            case 2:
+                                Toast.makeText(MainActivity.this, "已收藏", Toast.LENGTH_LONG).show();
+                                closeDialog();
+                                break;
+                            case 3:
+                                closeDialog();
+                                break;
+                        }
+
+                    }
+                });
+            }
+        };
+        mCustomDialog.show();
     }
 
 
