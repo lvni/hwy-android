@@ -12,4 +12,8 @@ public class Const {
     public static final String WEB_HOST = "hong5ye.com";
     public static final String APP_ID = "wxbbab02d24a62a8a2";
 
+
+    public static final int DL_TYPE_WEIXIN = 1;  //微信分享
+    public static final int DL_TYPE_STORE = 2;  //保存图片
+
 }

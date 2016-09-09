@@ -17,11 +17,13 @@ import java.net.URL;
 public class BitmapDownloaderTask extends AsyncTask<String, Void, Bitmap> {
     private String url;
     AsyncInterface main ;
+    private int type;
     private  JSONObject code;
 
-    public void setCallBack(AsyncInterface i, JSONObject params) {
-        main = i;
-        code = params;
+    public void setCallBack(AsyncInterface i, JSONObject params,int type) {
+        this.main = i;
+        this.code = params;
+        this.type = type;
     }
     @Override
     // Actual download method, run in the task thread
@@ -36,7 +38,7 @@ public class BitmapDownloaderTask extends AsyncTask<String, Void, Bitmap> {
         if (isCancelled()) {
             bitmap = null;
         }
-        main.imgdownload(bitmap, code);
+        main.imgdownload(bitmap, code,this.type);
 
     }
 

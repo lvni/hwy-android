@@ -15,6 +15,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -60,8 +62,12 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Set;
 import com.hwyjr.app.include.BitmapDownloaderTask;
 import android.os.Message;
@@ -529,7 +535,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
         } catch (Exception e) {
              //不可能进来
         }
-        a.setCallBack(this, params);
+        a.setCallBack(this, params,Const.DL_TYPE_WEIXIN);
         a.execute(img);
 
     }
@@ -696,9 +702,23 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
         setIntent(intent);
     }
 
+    /**
+     * 图片异步下载完成后的回调，type 觉得类型
+     * @param c
+     * @param params
+     * @param type
+     */
+    public void imgdownload(Bitmap c, JSONObject params, int type) {
+        if (type == Const.DL_TYPE_WEIXIN) {
+            //微信分享
+            shareWx(params, c);
+        }
 
-    public void imgdownload(Bitmap c, JSONObject params) {
-        shareWx(params, c);
+        if (type == Const.DL_TYPE_STORE) {
+            //图片保存
+            saveImg(c);
+        }
+
     }
 
     /**
@@ -713,9 +733,52 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
 
     }
 
+    /**
+     * 开始保存图片
+     * @param img
+     */
+    public void startSaveImg(String img) {
+        BitmapDownloaderTask a = new BitmapDownloaderTask();
+        a.setCallBack(this, null,Const.DL_TYPE_STORE);
+        a.execute(img);
+    }
 
     /**
-     * 显示Dialog
+     * 保存图片
+     * @param img
+     */
+    public void saveImg(Bitmap img) {
+
+        int seconds = (int)(System.currentTimeMillis() / 1000);
+        File appDir = new File(Environment.getExternalStorageDirectory(), "hwy");
+        String filename =  seconds + ".jpg";
+        File f = new File(appDir, filename);
+        try {
+            if (!appDir.exists()) {
+                appDir.mkdir();
+            }
+            FileOutputStream fos = new FileOutputStream(f);
+            img.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            fos.flush();
+            fos.close();
+            Toast.makeText(MainActivity.this, "图片保存在" + appDir + "目录下" , Toast.LENGTH_LONG).show();
+            // 其次把文件插入到系统图库
+
+             MediaStore.Images.Media.insertImage(this.getContentResolver(),
+                        f.getAbsolutePath(), filename, null);
+
+            // 最后通知图库更新
+            this.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse("file://" + f.getAbsolutePath())));
+
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+            Toast.makeText(MainActivity.this, "保存图片失败", Toast.LENGTH_LONG).show();
+
+        }
+    }
+    /**
+     * 显示长按图片的Dialog
      * @param
      */
     private void  showDialog(final String imgUrl) {
@@ -749,14 +812,11 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
                                 closeDialog();
                                 break;
                             case 1:
-                                Toast.makeText(MainActivity.this, "已保存到手机", Toast.LENGTH_LONG).show();
+                                startSaveImg(imgUrl);
+                                //Toast.makeText(MainActivity.this, "已保存到手机", Toast.LENGTH_LONG).show();
                                 closeDialog();
                                 break;
-                            case 2:
-                                Toast.makeText(MainActivity.this, "已收藏", Toast.LENGTH_LONG).show();
-                                closeDialog();
-                                break;
-                            case 3:
+                            default:
                                 closeDialog();
                                 break;
                         }

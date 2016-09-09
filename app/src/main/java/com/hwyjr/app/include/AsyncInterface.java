@@ -10,5 +10,5 @@ import org.json.JSONObject;
  */
 public interface AsyncInterface {
 
-    public void imgdownload(Bitmap bitmap, JSONObject params);
+    public void imgdownload(Bitmap bitmap, JSONObject params, int type);
 }
