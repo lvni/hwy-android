@@ -22,7 +22,7 @@ public class MyWebView extends WebView implements View.OnLongClickListener{
     public MyWebView(Context context) {
         super(context);
         this.context = context;
-        this.initProcessBar(context);
+        this.init(context);
     }
 
 
@@ -30,11 +30,12 @@ public class MyWebView extends WebView implements View.OnLongClickListener{
         return this.progressBar;
     }
 
-    public void initProcessBar(Context context) {
+    public void init(Context context) {
         progressBar = new ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal);
         progressBar.setLayoutParams(new AbsoluteLayout.LayoutParams(AbsoluteLayout.LayoutParams.MATCH_PARENT, 7, 0, 0));
         progressBar.setProgressDrawable(getResources().getDrawable(R.drawable.webview_progressbar));
         addView(progressBar);
+        setOnLongClickListener(this);
     }
 
 
@@ -45,18 +46,18 @@ public class MyWebView extends WebView implements View.OnLongClickListener{
 
     public MyWebView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        this.initProcessBar(context);
+        this.init(context);
     }
 
     public MyWebView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        this.initProcessBar(context);
+        this.init(context);
     }
 
     @TargetApi(21)
     public MyWebView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
-        this.initProcessBar(context);
+        this.init(context);
     }
 
 
@@ -64,6 +65,7 @@ public class MyWebView extends WebView implements View.OnLongClickListener{
     public boolean onLongClick(View v) {
         // 长按事件监听（注意：需要实现LongClickCallBack接口并传入对象）
         final HitTestResult htr = getHitTestResult();//获取所点击的内容
+        System.out.println("webview 长按");
         if (htr.getType() == WebView.HitTestResult.IMAGE_TYPE) {//判断被点击的类型为图片
             if (mCallBack != null) {
                 mCallBack.onLongClickCallBack(htr.getExtra());
