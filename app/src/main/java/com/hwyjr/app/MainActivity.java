@@ -45,6 +45,7 @@ import com.tencent.mm.sdk.modelbase.BaseResp;
 import com.tencent.mm.sdk.constants .ConstantsAPI;
 import com.tencent.mm.sdk.modelmsg.SendAuth;
 import com.tencent.mm.sdk.modelmsg.SendMessageToWX;
+import com.tencent.mm.sdk.modelmsg.WXImageObject;
 import com.tencent.mm.sdk.modelmsg.WXMediaMessage;
 import com.tencent.mm.sdk.modelmsg.WXWebpageObject;
 import com.tencent.mm.sdk.modelpay.PayReq;
@@ -562,8 +563,19 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
                 req.scene = sence;
                 api.sendReq(req);
                 hideShare();
-            } else if (params.has("img_url")) {
+            } else if (params.has("img")) {
                 //纯图片
+                if (thumb != null) {
+                    WXImageObject imgObj = new WXImageObject(thumb);
+                    WXMediaMessage msg = new WXMediaMessage();
+                    msg.mediaObject = imgObj;
+                    msg.thumbData = Utils.bmpToByteArray(thumb, true);
+                    SendMessageToWX.Req req = new SendMessageToWX.Req();
+                    req.transaction = Utils.buildTransaction("img");
+                    req.message = msg;
+                    req.scene = sence;
+                    api.sendReq(req);
+                }
 
             }
         } catch (Exception e) {
@@ -696,7 +708,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
     @Override
     public void onLongClickCallBack(String imgUrl) {
 
-        showDialog();
+        showDialog(imgUrl);
         System.out.println("长按图片了 " + imgUrl);
 
     }
@@ -706,7 +718,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
      * 显示Dialog
      * @param
      */
-    private void  showDialog() {
+    private void  showDialog(final String imgUrl) {
 
         adapter = new ArrayAdapter<String>(this,R.layout.item_dialog);
         adapter.add("发送给朋友");
@@ -726,7 +738,14 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
                         // 点击事件
                         switch (position) {
                             case 0:
-                                Toast.makeText(MainActivity.this, "已发送给朋友", Toast.LENGTH_LONG).show();
+                                //Toast.makeText(MainActivity.this, "已发送给朋友", Toast.LENGTH_LONG).show();
+                                JSONObject param = new JSONObject();
+                                try {
+                                    param.put("img", imgUrl);
+                                } catch (JSONException e) {
+                                    //不应该
+                                }
+                                startShareWx(param, SendMessageToWX.Req.WXSceneSession);
                                 closeDialog();
                                 break;
                             case 1:
