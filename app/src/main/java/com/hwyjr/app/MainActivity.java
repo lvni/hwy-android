@@ -5,14 +5,11 @@ import com.hwyjr.app.include.AsyncInterface;
 import com.hwyjr.app.include.FileUtils;
 import com.hwyjr.app.include.Utils;
 
+
 import android.annotation.SuppressLint;
-import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -20,6 +17,7 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.webkit.DownloadListener;
 import android.webkit.ValueCallback;
@@ -42,9 +40,9 @@ import com.hwyjr.app.include.Const;
 import com.hwyjr.app.scan.MipcaActivityCapture;
 import com.hwyjr.app.view.MyDialog;
 import com.hwyjr.app.view.MyWebView;
-import com.tencent.mm.sdk.modelbase.BaseReq;
-import com.tencent.mm.sdk.modelbase.BaseResp;
-import com.tencent.mm.sdk.constants .ConstantsAPI;
+import com.tencent.android.tpush.XGIOperateCallback;
+import com.tencent.android.tpush.XGPushConfig;
+import com.tencent.android.tpush.XGPushManager;
 import com.tencent.mm.sdk.modelmsg.SendAuth;
 import com.tencent.mm.sdk.modelmsg.SendMessageToWX;
 import com.tencent.mm.sdk.modelmsg.WXImageObject;
@@ -52,25 +50,20 @@ import com.tencent.mm.sdk.modelmsg.WXMediaMessage;
 import com.tencent.mm.sdk.modelmsg.WXWebpageObject;
 import com.tencent.mm.sdk.modelpay.PayReq;
 import com.tencent.mm.sdk.openapi.IWXAPI;
-import com.tencent.mm.sdk.openapi.IWXAPIEventHandler;
 import com.tencent.mm.sdk.openapi.WXAPIFactory;
 
 import android.content.Intent;
 import android.view.View;
 import android.widget.Toast;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
+
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Set;
 import com.hwyjr.app.include.BitmapDownloaderTask;
-import android.os.Message;
 
 public class MainActivity extends AppCompatActivity  implements AsyncInterface, MyWebView.LongClickCallBack {
 
@@ -85,8 +78,6 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
 
 
 
-    private int inited = 0;
-    private int resumed = 0;
     private JSONObject shareContent ;
     private IWXAPI api;
     private static final int FILECHOOSER_RESULTCODE = 1;
@@ -130,6 +121,8 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
             webview.loadUrl(Const.WEB_PORTAL);
             api = WXAPIFactory.createWXAPI(this, Const.APP_ID, false);
             api.registerApp(Const.APP_ID);
+
+            registerPush();
         } else {
             System.out.println("webview has exist");
         }
@@ -828,7 +821,22 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
         mCustomDialog.show();
     }
 
+    /**
+     * 注册推送
+     */
+    private void registerPush() {
+        XGPushConfig.enableDebug(this, true);
+        XGPushManager.registerPush(getApplicationContext(), new XGIOperateCallback() {
+            @Override
+            public void onSuccess(Object o, int i) {
+                System.out.println("注册成功，设备token为：" + o);
+            }
 
-
+            @Override
+            public void onFail(Object o, int i, String s) {
+                System.out.println( "注册失败，错误码：" + i + ",错误信息：" + s);
+            }
+        });
+    }
 
 }

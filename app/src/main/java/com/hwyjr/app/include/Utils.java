@@ -1,6 +1,6 @@
 package com.hwyjr.app.include;
 
-import android.app.ProgressDialog;
+import android.annotation.TargetApi;
 import android.content.pm.PackageInfo;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
@@ -78,6 +79,7 @@ public class Utils {
     }
 
 
+    @TargetApi(12)
     public static byte[] bmpToByteArray(Bitmap thumb, boolean compress) {
         Bitmap forThumb;
         int height = thumb.getHeight();
@@ -87,8 +89,15 @@ public class Utils {
         forThumb = Bitmap.createScaledBitmap(thumb, newWidth, newheight,true);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        int size = 0;
+        if (Build.VERSION.SDK_INT >= 11) {
+            size = forThumb.getByteCount();
+        } else {
+            size = forThumb.getRowBytes() * forThumb.getHeight();
+        }
+
         if (compress) {
-            if (forThumb.getByteCount() > 32 * 1024 ) {
+            if (size > 32 * 1024 ) {
                 forThumb.compress(Bitmap.CompressFormat.PNG, 30, baos);
             }
 
