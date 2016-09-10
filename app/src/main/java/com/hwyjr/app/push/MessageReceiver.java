@@ -11,16 +11,17 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.hwyjr.app.push.NotificationService;
-import com.hwyjr.app.push.XGNotification;
 import com.tencent.android.tpush.XGPushBaseReceiver;
 import com.tencent.android.tpush.XGPushClickedResult;
 import com.tencent.android.tpush.XGPushRegisterResult;
 import com.tencent.android.tpush.XGPushShowedResult;
 import com.tencent.android.tpush.XGPushTextMessage;
 
+/**
+ * 暂时不用
+ */
 public class MessageReceiver extends XGPushBaseReceiver {
-	private Intent intent = new Intent("com.qq.xgdemo.activity.UPDATE_LISTVIEW");
+	private Intent intent = new Intent("com.hwyjr.app.MainActivity.PUSH_BACK");
 	public static final String LogTag = "TPushReceiver";
 
 	private void show(Context context, String text) {
@@ -34,6 +35,8 @@ public class MessageReceiver extends XGPushBaseReceiver {
 		if (context == null || notifiShowedRlt == null) {
 			return;
 		}
+		/**
+		 * 消息到数据库，后面有需要再加
 		XGNotification notific = new XGNotification();
 		notific.setMsg_id(notifiShowedRlt.getMsgId());
 		notific.setTitle(notifiShowedRlt.getTitle());
@@ -46,8 +49,10 @@ public class MessageReceiver extends XGPushBaseReceiver {
 		notific.setUpdate_time(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 				.format(Calendar.getInstance().getTime()));
 		NotificationService.getInstance(context).save(notific);
-		context.sendBroadcast(intent);
-		show(context, "您有1条新消息, " + "通知被展示 ， " + notifiShowedRlt.toString());
+
+		 **/
+		//show(context, "您有1条新消息, " + "通知被展示 ， " + notifiShowedRlt.toString());
+		//context.sendBroadcast(intent);
 	}
 
 	@Override
@@ -62,7 +67,6 @@ public class MessageReceiver extends XGPushBaseReceiver {
 			text = "反注册失败" + errorCode;
 		}
 		Log.d(LogTag, text);
-		show(context, text);
 
 	}
 
@@ -78,7 +82,6 @@ public class MessageReceiver extends XGPushBaseReceiver {
 			text = "\"" + tagName + "\"设置失败,错误码：" + errorCode;
 		}
 		Log.d(LogTag, text);
-		show(context, text);
 
 	}
 
@@ -94,7 +97,6 @@ public class MessageReceiver extends XGPushBaseReceiver {
 			text = "\"" + tagName + "\"删除失败,错误码：" + errorCode;
 		}
 		Log.d(LogTag, text);
-		show(context, text);
 
 	}
 
@@ -116,8 +118,7 @@ public class MessageReceiver extends XGPushBaseReceiver {
 			// APP自己处理通知被清除后的相关动作
 			text = "通知被清除 :" + message;
 		}
-		Toast.makeText(context, "广播接收到通知被点击:" + message.toString(),
-				Toast.LENGTH_SHORT).show();
+
 		// 获取自定义key-value
 		String customContent = message.getCustomContent();
 		if (customContent != null && customContent.length() != 0) {
@@ -135,7 +136,6 @@ public class MessageReceiver extends XGPushBaseReceiver {
 		}
 		// APP自主处理的过程。。。
 		Log.d(LogTag, text);
-		show(context, text);
 	}
 
 	@Override
@@ -154,7 +154,7 @@ public class MessageReceiver extends XGPushBaseReceiver {
 			text = message + "注册失败，错误码：" + errorCode;
 		}
 		Log.d(LogTag, text);
-		show(context, text);
+		//show(context, text);
 	}
 
 	// 消息透传

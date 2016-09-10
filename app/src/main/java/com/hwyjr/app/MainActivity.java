@@ -41,6 +41,7 @@ import com.hwyjr.app.scan.MipcaActivityCapture;
 import com.hwyjr.app.view.MyDialog;
 import com.hwyjr.app.view.MyWebView;
 import com.tencent.android.tpush.XGIOperateCallback;
+import com.tencent.android.tpush.XGPushClickedResult;
 import com.tencent.android.tpush.XGPushConfig;
 import com.tencent.android.tpush.XGPushManager;
 import com.tencent.mm.sdk.modelmsg.SendAuth;
@@ -150,7 +151,6 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
 
     public void onResume() {
         super.onResume();
-        System.out.println("恢复了 " );
         Intent ct = getIntent();
         if ("login".equals(ct.getStringExtra("wx_type"))) {
             webviewCallback(ct.getStringExtra("wx_back"));
@@ -167,6 +167,16 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
             webviewCallback(ct.getStringExtra("wx_back"));
         }
         ct.removeExtra("wx_type");
+        XGPushClickedResult click = XGPushManager.onActivityStarted(this);
+        if (click != null) { // 判断是否来自信鸽的打开方式
+
+            String customContent = click.getCustomContent();
+            String jsBack = "{title:'"+click.getTitle()+"'"
+                          + ",content:'" + click.getContent() + "'"
+                          + ",customContent:"+customContent+"}";
+            jsCallbacFunc = "AppCall.pushBack";  //推送回调js的接口
+            webviewCallback(jsBack);
+        }
     }
 
     @Override
