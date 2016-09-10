@@ -73,9 +73,11 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
     private ViewFlipper allFlipper;
     private String jsCallbacFunc = "" ;
     private String jsBackParams = "";
+    private String DevPusToken = "";
 
     private MyDialog mCustomDialog;
     private ArrayAdapter<String> adapter;
+    private int isDeviceRegister = 0;// 设备是否向H5注册了
 
 
 
@@ -177,6 +179,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
             jsCallbacFunc = "AppCall.pushBack";  //推送回调js的接口
             webviewCallback(jsBack);
         }
+
     }
 
     @Override
@@ -358,6 +361,12 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
                 //开始
                 super.onPageFinished(view, url);
                 view.getSettings().setBlockNetworkImage(false);
+                if (isDeviceRegister == 0 && DevPusToken != "") {
+                    //想服务器注册当前设备
+                    registerToH(DevPusToken);
+                    isDeviceRegister = 1;
+                }
+
 
 
             }
@@ -366,9 +375,6 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
             public void onReceivedError(WebView view, int errorCode,
                                         String description, String failingUrl)  {
                 super.onReceivedError( view, errorCode, description, failingUrl);
-
-                System.out.println("code " + errorCode);
-                System.out.println("加载出错了 " + failingUrl);
                 loadEorrrPage(failingUrl);
             }
 
@@ -680,6 +686,20 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
                         Toast.makeText(this, "目前不支持，请更新最新版本app", Toast.LENGTH_SHORT).show();
                     }
                     break;
+                case "setPushTag":
+                    String tag  = uri.getQueryParameter("tag");
+                    if (tag != null && tag != "") {
+                        //有tag，调用接口设置
+                        setPushTag(tag);
+                    }
+                    break;
+                case "removePushTag":
+                    tag  = uri.getQueryParameter("tag");
+                    if (tag != null && tag != "") {
+                        //有tag，调用接口设置
+                        removePushTag(tag);
+                    }
+                    break;
                 case  "close":
                     finish();
                     break;
@@ -831,6 +851,12 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
         mCustomDialog.show();
     }
 
+
+    private void registerToH(String token) {
+        jsCallbacFunc = "AppCall.deviceRegister";  //注册当前设备接口
+        String jsContent = "{token:'"+token+"'}";
+        webviewCallback(jsContent);
+    }
     /**
      * 注册推送
      */
@@ -840,6 +866,8 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
             @Override
             public void onSuccess(Object o, int i) {
                 System.out.println("注册成功，设备token为：" + o);
+                DevPusToken = o.toString();
+
             }
 
             @Override
@@ -847,6 +875,16 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
                 System.out.println( "注册失败，错误码：" + i + ",错误信息：" + s);
             }
         });
+    }
+
+
+
+    private void setPushTag( String Tag) {
+        XGPushManager.setTag(this, Tag);
+    }
+
+    private void removePushTag(String tag) {
+        XGPushManager.deleteTag(this, tag);
     }
 
 }
