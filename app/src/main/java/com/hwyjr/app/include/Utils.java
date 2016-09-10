@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
@@ -78,7 +79,21 @@ public class Utils {
         return bitmap;
     }
 
-
+    public static Bitmap zoomImg(Bitmap bm, int newWidth ,int newHeight){
+        // 获得图片的宽高
+        int width = bm.getWidth();
+        int height = bm.getHeight();
+        // 计算缩放比例
+        float scaleWidth = ((float) newWidth) / width;
+        float scaleHeight = ((float) newHeight) / height;
+        // 取得想要缩放的matrix参数
+        float radio = width < height ? scaleWidth : scaleHeight;
+        Matrix matrix = new Matrix();
+        matrix.postScale(radio, radio);
+        // 得到新的图片
+        Bitmap newbm = Bitmap.createBitmap(bm, 0, 0, width, height, matrix, true);
+        return newbm;
+    }
     @TargetApi(12)
     public static byte[] bmpToByteArray(Bitmap thumb, boolean compress) {
         Bitmap forThumb;
@@ -86,8 +101,8 @@ public class Utils {
         int newWidth = 100;
         int newheight = (int)((thumb.getHeight() * 1.0 / thumb.getWidth()) * 100);
         newheight = 100;
-        forThumb = Bitmap.createScaledBitmap(thumb, newWidth, newheight,true);
-
+       // forThumb = Bitmap.createScaledBitmap(thumb, newWidth, newheight,false);
+        forThumb = zoomImg(thumb, 100, 100);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         int size = 0;
         if (Build.VERSION.SDK_INT >= 11) {
@@ -98,7 +113,7 @@ public class Utils {
 
         if (compress) {
             if (size > 32 * 1024 ) {
-                forThumb.compress(Bitmap.CompressFormat.PNG, 30, baos);
+                forThumb.compress(Bitmap.CompressFormat.PNG, 50, baos);
             }
 
         }
