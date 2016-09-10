@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
     protected LinearLayout NaviBar;
     private ViewFlipper allFlipper;
     private String jsCallbacFunc = "" ;
-    private String jsBackParams = "";
+    private String jsDelayCall = "";
     private String DevPusToken = "";
 
     private MyDialog mCustomDialog;
@@ -176,8 +176,10 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
             String jsBack = "{title:'"+click.getTitle()+"'"
                           + ",content:'" + click.getContent() + "'"
                           + ",customContent:"+customContent+"}";
-            jsCallbacFunc = "AppCall.pushBack";  //推送回调js的接口
+
+            jsCallbacFunc = "AppCall.pushBack";
             webviewCallback(jsBack);
+            jsDelayCall = "AppCall.pushBack && AppCall.pushBack("+jsBack+")";
         }
 
     }
@@ -367,6 +369,8 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
                     isDeviceRegister = 1;
                 }
 
+                webViewDelayCallback();
+
 
 
             }
@@ -527,10 +531,18 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
     public void webviewCallback(String params) {
         if (jsCallbacFunc != null && jsCallbacFunc != ""  && params != "") {
             webview.loadUrl("javascript:"+jsCallbacFunc+" && "+jsCallbacFunc+"(" +params+")");
-            //webview.loadUrl("javascript:"+JsContent);
-            jsCallbacFunc = jsBackParams = "";
+            jsCallbacFunc  = "";
         }
     }
+
+    public void webViewDelayCallback() {
+        if (jsDelayCall != null && jsDelayCall != "" && !webview.canGoBack()) {
+            //只有在不能返回，也就是第一次进入才能执行
+            webview.loadUrl("javascript:" + jsDelayCall);
+        }
+        jsDelayCall = "";
+    }
+
 
 
     public void startShareWx(JSONObject params, int scence) {
