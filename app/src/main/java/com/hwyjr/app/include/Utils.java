@@ -1,6 +1,7 @@
 package com.hwyjr.app.include;
 
 import android.annotation.TargetApi;
+import android.app.DownloadManager;
 import android.content.pm.PackageInfo;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -9,7 +10,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
@@ -113,7 +116,8 @@ public class Utils {
 
         if (compress) {
             if (size > 32 * 1024 ) {
-                forThumb.compress(Bitmap.CompressFormat.PNG, 50, baos);
+                int tp = 100 - (32 * 1024 / size) * 100;
+                forThumb.compress(Bitmap.CompressFormat.PNG, tp, baos);
             }
 
         }
@@ -167,5 +171,42 @@ public class Utils {
             }
         }
         return false;
+    }
+
+    //@TargetApi(11)
+    public static long startDownload(Context context, String uri, String title, String description) {
+        DownloadManager.Request req = new DownloadManager.Request(Uri.parse(uri));
+
+        req.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
+        req.setAllowedOverRoaming(false);
+        if (Build.VERSION.SDK_INT >= 11) {
+            req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+        }
+
+
+        //设置文件的保存的位置[三种方式]
+        //第一种
+        //file:///storage/emulated/0/Android/data/your-package/files/Download/update.apk
+       // req.setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, "hwy-release.apk");
+        //第二种
+        //file:///storage/emulated/0/Download/update.apk
+        req.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "hwy-release.apk");
+        //第三种 自定义文件路径
+        //req.setDestinationUri()
+
+
+        // 设置一些基本显示信息
+        req.setTitle(title);
+        req.setDescription(description);
+
+        req.setMimeType("application/vnd.android.package-archive");
+        DownloadManager downManager = (DownloadManager)context.getSystemService(Context.DOWNLOAD_SERVICE);
+
+        //加入下载队列
+        return downManager.enqueue(req);
+
+        //long downloadId = dm.enqueue(req);
+        //Log.d("DownloadManager", downloadId + "");
+        //dm.openDownloadedFile()
     }
 }

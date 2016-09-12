@@ -7,6 +7,7 @@ import com.hwyjr.app.include.Utils;
 
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -194,6 +195,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
         super.onRestoreInstanceState(savedInstanceState);
     }
 
+    @TargetApi(22)
     public void initWebview() {
         webview.getSettings().setJavaScriptEnabled(true);
         webview.getSettings().setDomStorageEnabled(true);
@@ -207,7 +209,8 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
 
         //提高网页加载速度，暂时阻塞图片加载，然后网页加载好了，在进行加载图片
         //webview.getSettings().setBlockNetworkImage(true);
-       // WebView.setWebContentsDebuggingEnabled(true);
+
+        WebView.setWebContentsDebuggingEnabled(true);
         //设置ua
         int chanelId = 0;
         try {
@@ -714,6 +717,13 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
                     break;
                 case  "close":
                     finish();
+                    break;
+                case "update":
+                    //下载更新app
+                    String link = jsonParams.getString("url");
+                    String title = jsonParams.getString("title");
+                    String desc = jsonParams.getString("desc");
+                    Utils.startDownload(this,link,title,desc);
                     break;
                 default:
                     Toast.makeText(this, "目前不支持，请更新最新版本app", Toast.LENGTH_SHORT).show();
