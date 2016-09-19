@@ -1,5 +1,6 @@
 package com.hwyjr.app;
 
+import com.alipay.sdk.app.PayTask;
 import com.hwyjr.app.R;
 import com.hwyjr.app.include.AsyncInterface;
 import com.hwyjr.app.include.FileUtils;
@@ -65,6 +66,9 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+
 import com.hwyjr.app.include.BitmapDownloaderTask;
 
 public class MainActivity extends AppCompatActivity  implements AsyncInterface, MyWebView.LongClickCallBack {
@@ -88,6 +92,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
     private ValueCallback<Uri[]> mUploadMessage;
     private ValueCallback<Uri> mUploadMessage1;
     ProgressBar progressbar;
+    private String alipayRet;
     private Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -100,6 +105,12 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
                 case 2:
                     //关闭分享
                     hideShare();
+                    break;
+                case 3:
+                    //支付宝回调
+                    String result = (String) msg.obj;
+                    //System.out.println(result);
+                    webviewCallback(result);
                     break;
             }
         }
@@ -181,6 +192,12 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
             jsCallbacFunc = "AppCall.pushBack";
             webviewCallback(jsBack);
             jsDelayCall = "AppCall.pushBack && AppCall.pushBack("+jsBack+")";
+        }
+
+        if (alipayRet != null && alipayRet != "") {
+            jsCallbacFunc = "AppCall.aliPayBack";
+            webviewCallback(alipayRet);
+            alipayRet = null;
         }
 
     }
@@ -694,10 +711,14 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
                             request.sign = jsonParams.getString("sign");
                             api.sendReq(request);
                         } catch(Exception e) {
-                            e.printStackTrace();
+                            Toast.makeText(this, "微信支付参数错误!", Toast.LENGTH_SHORT).show();
                         }
                         return ;
-                    } else {
+                    } else if(act.equals("alipay")) {
+                        String orderStr = uri.getQueryParameter("orderStr");
+                        System.out.println("alipay : " + orderStr);
+                        alipay(orderStr);
+                    }else {
                         Toast.makeText(this, "目前不支持，请更新最新版本app", Toast.LENGTH_SHORT).show();
                     }
                     break;
@@ -740,6 +761,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
     }
 
 
+
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -774,7 +796,6 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
     public void onLongClickCallBack(String imgUrl) {
 
         showDialog(imgUrl);
-        System.out.println("长按图片了 " + imgUrl);
 
     }
 
@@ -907,6 +928,40 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
 
     private void removePushTag(String tag) {
         XGPushManager.deleteTag(this, tag);
+    }
+
+
+
+    //支付宝支付相关
+    public void alipay(final String orderInfo) {
+        Runnable payRunnable = new Runnable() {
+
+            @Override
+            public void run() {
+                PayTask alipay = new PayTask(MainActivity.this);
+                Map result = alipay.payV2(orderInfo,true);
+
+                String strRet = "type:'alipay'";
+                Iterator<String> iter = result.keySet().iterator();
+                while(iter.hasNext()) {
+                    String field = iter.next();
+                    String item = (String)result.get(field);
+                    if (!item.startsWith("{")) {
+                        item = "'"+item+"'";
+                    }
+                    strRet += ","+field + ":" + item;
+                }
+                strRet = "{" + strRet + "}";
+                alipayRet = strRet;
+                Message msg = new Message();
+                msg.what = 3;
+                msg.obj = strRet;
+                handler.sendMessage(msg);
+            }
+        };
+        // 必须异步调用
+        Thread payThread = new Thread(payRunnable);
+        payThread.start();
     }
 
 }
