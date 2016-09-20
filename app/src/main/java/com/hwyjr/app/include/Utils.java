@@ -117,6 +117,9 @@ public class Utils {
         if (compress) {
             if (size > 32 * 1024 ) {
                 int tp = 100 - (32 * 1024 / size) * 100;
+                if (tp > 15) {
+                    tp -= 5;
+                }
                 forThumb.compress(Bitmap.CompressFormat.PNG, tp, baos);
             }
 
