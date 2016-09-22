@@ -746,6 +746,14 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
                     String desc = jsonParams.getString("desc");
                     Utils.startDownload(this,link,title,desc);
                     break;
+                case "setDebug":
+                    tag  = uri.getQueryParameter("tag");
+                    webview.loadUrl(Const.WEB_DEBUG_PORTAL);
+                    if (tag != null && tag.startsWith("http")) {
+                        webview.loadUrl(tag);
+                    }
+                    Toast.makeText(this, "您目前处于测试环境，请不要谨慎操作，退出app可以还原", Toast.LENGTH_SHORT).show();
+                    break;
                 default:
                     Toast.makeText(this, "目前不支持，请更新最新版本app", Toast.LENGTH_SHORT).show();
                     break;
