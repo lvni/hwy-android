@@ -912,7 +912,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
      * 注册推送
      */
     private void registerPush() {
-        XGPushConfig.enableDebug(this, true);
+        //XGPushConfig.enableDebug(this, true);
         XGPushManager.registerPush(getApplicationContext(), new XGIOperateCallback() {
             @Override
             public void onSuccess(Object o, int i) {
