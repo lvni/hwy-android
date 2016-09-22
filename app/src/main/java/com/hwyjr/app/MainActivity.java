@@ -227,7 +227,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
         //提高网页加载速度，暂时阻塞图片加载，然后网页加载好了，在进行加载图片
         //webview.getSettings().setBlockNetworkImage(true);
 
-        WebView.setWebContentsDebuggingEnabled(true);
+        //WebView.setWebContentsDebuggingEnabled(true);
         //设置ua
         int chanelId = 0;
         try {
