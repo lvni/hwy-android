@@ -24,6 +24,7 @@ import android.view.KeyEvent;
 import android.webkit.DownloadListener;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.os.Handler;
@@ -220,7 +221,9 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
         webview.getSettings().setAppCacheEnabled(true);
         webview.getSettings().setDefaultTextEncodingName("UTF-8");
         webview.setLongClickCallBack(this);  //注册长按
-
+        if (Build.VERSION.SDK_INT >= 21) {
+            webview.getSettings().setMixedContentMode( WebSettings.MIXED_CONTENT_ALWAYS_ALLOW );
+        }
         webview.setFocusable(true);
         webview.setFocusableInTouchMode(true);
 
