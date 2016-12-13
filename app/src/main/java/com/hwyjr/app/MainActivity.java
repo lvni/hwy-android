@@ -222,7 +222,7 @@ public class MainActivity extends AppCompatActivity  implements AsyncInterface, 
         webview.getSettings().setDefaultTextEncodingName("UTF-8");
         webview.setLongClickCallBack(this);  //注册长按
         if (Build.VERSION.SDK_INT >= 21) {
-            webview.getSettings().setMixedContentMode( WebSettings.MIXED_CONTENT_ALWAYS_ALLOW );
+            webview.getSettings().setMixedContentMode( WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE );
         }
         webview.setFocusable(true);
         webview.setFocusableInTouchMode(true);
